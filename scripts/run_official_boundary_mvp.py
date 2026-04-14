@@ -33,6 +33,22 @@ def parse_args() -> argparse.Namespace:
         default=Path("data/raw/boundaries/england_boundary_analysis.parquet"),
         help="Path to the official England boundary file.",
     )
+    parser.add_argument(
+        "--tile-size-m",
+        type=float,
+        default=50_000,
+        help="Tile size used for chunked grid building and feature aggregation.",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print progress while building the outputs.",
+    )
+    parser.add_argument(
+        "--no-reuse-existing",
+        action="store_true",
+        help="Rebuild outputs even if cached intermediates already exist.",
+    )
     return parser.parse_args()
 
 
@@ -42,6 +58,9 @@ def main() -> None:
         out_dir=args.out_dir,
         boundary_path=args.boundary_path,
         cell_diameter_m=args.cell_diameter_m,
+        tile_size_m=args.tile_size_m,
+        verbose=args.verbose,
+        reuse_existing=not args.no_reuse_existing,
     )
     for name, path in outputs.items():
         print(f"{name}: {path}")

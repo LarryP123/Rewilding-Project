@@ -23,12 +23,33 @@ from src.ingest import (
 )
 from src.score import add_connectivity_score, apply_scenarios
 
+ALC_CACHE_PATH = Path("data/interim/alc_clean.parquet")
+
 
 def _load_corine_subset(asset: DataAsset) -> gpd.GeoDataFrame:
     local_subset = Path("data/interim/corine_subset.parquet")
     if local_subset.exists():
         return gpd.read_parquet(local_subset)
     return gpd.read_file(asset.path, layer=asset.layer, bbox=england_bbox_corine())
+
+
+def _load_clean_alc(asset: DataAsset, *, verbose: bool = False) -> gpd.GeoDataFrame:
+    """Load a cached cleaned ALC layer or build it once."""
+
+    if ALC_CACHE_PATH.exists():
+        if verbose:
+            print(f"[pipeline] using cached ALC: {ALC_CACHE_PATH}", flush=True)
+        return gpd.read_parquet(ALC_CACHE_PATH)
+
+    if verbose:
+        print("[pipeline] building cached ALC layer", flush=True)
+    alc = repair_geometries(
+        ensure_bng(gpd.read_file(asset.path)),
+        allowed_geom_types=("Polygon", "MultiPolygon"),
+    )
+    alc.columns = alc.columns.str.lower()
+    write_geoparquet(alc, ALC_CACHE_PATH)
+    return alc
 
 
 def _boundary_proxy(alc: gpd.GeoDataFrame, buffer_m: float = 2000) -> gpd.GeoDataFrame:
@@ -56,6 +77,9 @@ def build_mvp_outputs(
     boundary_path: Path | None = None,
     boundary_layer: str | None = None,
     cell_diameter_m: float = 1000,
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+    reuse_existing: bool = True,
 ) -> dict[str, Path]:
     """Build a first-pass scored grid using the currently available layers."""
 
@@ -73,29 +97,77 @@ def build_mvp_outputs(
         description="CORINE land cover",
     )
 
-    alc = repair_geometries(
-        ensure_bng(gpd.read_file(alc_asset.path)),
-        allowed_geom_types=("Polygon", "MultiPolygon"),
-    )
-    alc.columns = alc.columns.str.lower()
+    boundary_out = out_dir / "analysis_boundary.parquet"
+    corine_out = out_dir / "corine_england_subset.parquet"
+    habitat_out = out_dir / "habitat_proxy.parquet"
+    grid_out = out_dir / "hex_grid.parquet"
+    scores_out = out_dir / "hex_scores.parquet"
 
-    corine = _load_corine_subset(corine_asset)
-    corine.columns = corine.columns.str.lower()
-    habitat = corine_habitat_proxy(corine, code_column="code_18")
+    if reuse_existing and scores_out.exists():
+        if verbose:
+            print(f"[pipeline] reusing existing scores: {scores_out}", flush=True)
+        return {
+            "boundary": boundary_out,
+            "corine_subset": corine_out,
+            "habitat_proxy": habitat_out,
+            "grid": grid_out,
+            "scores": scores_out,
+        }
 
-    if boundary_path is not None:
-        if boundary_path.suffix == ".parquet":
-            boundary = ensure_bng(gpd.read_parquet(boundary_path))
-        else:
-            boundary = ensure_bng(gpd.read_file(boundary_path, layer=boundary_layer))
-        boundary["boundary_type"] = "official_input"
+    if verbose:
+        print("[pipeline] loading ALC", flush=True)
+    alc = _load_clean_alc(alc_asset, verbose=verbose)
+
+    if verbose:
+        print("[pipeline] loading CORINE", flush=True)
+    if reuse_existing and corine_out.exists():
+        corine = gpd.read_parquet(corine_out)
     else:
-        boundary = _boundary_proxy(alc)
+        corine = _load_corine_subset(corine_asset)
+        corine.columns = corine.columns.str.lower()
+        write_geoparquet(corine, corine_out)
+    corine.columns = corine.columns.str.lower()
 
-    grid = build_hex_grid(boundary, cell_diameter_m=cell_diameter_m)
-    habitat_share = add_habitat_share_feature(grid, habitat)
-    habitat_distance = add_distance_to_habitat_feature(grid, habitat)
-    alc_feature = add_alc_opportunity_feature(grid, alc, grade_column="alc_grade")
+    if reuse_existing and habitat_out.exists():
+        habitat = gpd.read_parquet(habitat_out)
+    else:
+        habitat = corine_habitat_proxy(corine, code_column="code_18")
+        write_geoparquet(habitat, habitat_out)
+
+    if reuse_existing and boundary_out.exists():
+        boundary = gpd.read_parquet(boundary_out)
+    else:
+        if boundary_path is not None:
+            if verbose:
+                print("[pipeline] loading official boundary", flush=True)
+            if boundary_path.suffix == ".parquet":
+                boundary = ensure_bng(gpd.read_parquet(boundary_path))
+            else:
+                boundary = ensure_bng(gpd.read_file(boundary_path, layer=boundary_layer))
+            boundary["boundary_type"] = "official_input"
+        else:
+            boundary = _boundary_proxy(alc)
+        write_geoparquet(boundary, boundary_out)
+
+    if reuse_existing and grid_out.exists():
+        if verbose:
+            print(f"[pipeline] reusing existing grid: {grid_out}", flush=True)
+        grid = gpd.read_parquet(grid_out)
+    else:
+        if verbose:
+            print("[pipeline] building grid", flush=True)
+        grid = build_hex_grid(boundary, cell_diameter_m=cell_diameter_m, tile_size_m=tile_size_m, verbose=verbose)
+        write_geoparquet(grid, grid_out)
+
+    if verbose:
+        print("[pipeline] habitat share", flush=True)
+    habitat_share = add_habitat_share_feature(grid, habitat, tile_size_m=tile_size_m, verbose=verbose)
+    if verbose:
+        print("[pipeline] habitat distance", flush=True)
+    habitat_distance = add_distance_to_habitat_feature(grid, habitat, tile_size_m=tile_size_m, verbose=verbose)
+    if verbose:
+        print("[pipeline] ALC feature", flush=True)
+    alc_feature = add_alc_opportunity_feature(grid, alc, grade_column="alc_grade", tile_size_m=tile_size_m, verbose=verbose)
 
     features = combine_feature_table(grid, habitat_share, habitat_distance, alc_feature)
     features = add_connectivity_score(features)
@@ -107,14 +179,16 @@ def build_mvp_outputs(
 
     scored = apply_scenarios(features)
 
+    write_geoparquet(
+        gpd.GeoDataFrame(scored, geometry="geometry", crs=grid.crs),
+        scores_out,
+    )
+
     outputs = {
-        "boundary": write_geoparquet(boundary, out_dir / "analysis_boundary.parquet"),
-        "corine_subset": write_geoparquet(corine, out_dir / "corine_england_subset.parquet"),
-        "habitat_proxy": write_geoparquet(habitat, out_dir / "habitat_proxy.parquet"),
-        "grid": write_geoparquet(grid, out_dir / "hex_grid.parquet"),
-        "scores": write_geoparquet(
-            gpd.GeoDataFrame(scored, geometry="geometry", crs=grid.crs),
-            out_dir / "hex_scores.parquet",
-        ),
+        "boundary": boundary_out,
+        "corine_subset": corine_out,
+        "habitat_proxy": habitat_out,
+        "grid": grid_out,
+        "scores": scores_out,
     }
     return outputs

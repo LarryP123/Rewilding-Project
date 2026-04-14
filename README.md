@@ -85,6 +85,11 @@ Production-style run with the official England boundary:
 python scripts/run_official_boundary_mvp.py --cell-diameter-m 1000
 ```
 
+The runner now caches the cleaned ALC layer at `data/interim/alc_clean.parquet`
+and reuses existing boundary, CORINE, habitat, grid, and score outputs inside
+the chosen `--out-dir` when present. Use `--no-reuse-existing` if you want to
+force a rebuild.
+
 Export top-ranked candidate hexes from a scored layer:
 
 ```bash
