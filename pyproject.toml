@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rewilding-suitability"
+version = "0.1.0"
+description = "Spatial decision-support pipeline for identifying rewilding opportunities in England."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "geopandas>=1.0",
+  "numpy>=1.26",
+  "pandas>=2.2",
+  "pyarrow>=16.0",
+  "shapely>=2.0",
+]
+
+[tool.setuptools]
+packages = ["src"]
