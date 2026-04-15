@@ -61,6 +61,19 @@ def main() -> None:
     ranked.drop(columns="geometry").to_csv(csv_path, index=False)
     ranked.to_file(geojson_path, driver="GeoJSON")
 
+    top_columns = [
+        "hex_id",
+        args.scenario,
+        "cell_area_ratio",
+        "undersized_cell_penalty",
+        "priority_habitat_share",
+        "connectivity_score",
+        "restoration_opportunity_score",
+        "habitat_mosaic_score",
+        "agri_opportunity_score_raw",
+    ]
+    top_columns = [column for column in top_columns if column in ranked.columns]
+
     summary = [
         f"# Top Candidates: {args.scenario}",
         "",
@@ -73,18 +86,7 @@ def main() -> None:
         "",
         "## Top 10 hexes",
         "",
-        ranked[
-            [
-                "hex_id",
-                args.scenario,
-                "priority_habitat_share",
-                "connectivity_score",
-                "agri_opportunity_score_raw",
-            ]
-        ]
-        .head(10)
-        .round(2)
-        .to_string(index=False),
+        ranked[top_columns].head(10).round(2).to_string(index=False),
     ]
 
     summary_path.write_text("\n".join(summary) + "\n")

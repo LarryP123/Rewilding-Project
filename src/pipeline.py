@@ -21,7 +21,12 @@ from src.ingest import (
     repair_geometries,
     write_geoparquet,
 )
-from src.score import add_connectivity_score, apply_scenarios
+from src.score import (
+    add_boundary_penalty,
+    add_connectivity_score,
+    add_restoration_opportunity_scores,
+    apply_scenarios,
+)
 
 ALC_CACHE_PATH = Path("data/interim/alc_clean.parquet")
 
@@ -102,6 +107,10 @@ def build_mvp_outputs(
     habitat_out = out_dir / "habitat_proxy.parquet"
     grid_out = out_dir / "hex_grid.parquet"
     scores_out = out_dir / "hex_scores.parquet"
+    grid_tiles_dir = out_dir / "grid_tiles"
+    habitat_share_dir = out_dir / "feature_chunks" / "habitat_share"
+    habitat_distance_dir = out_dir / "feature_chunks" / "distance"
+    alc_feature_dir = out_dir / "feature_chunks" / "alc"
 
     if reuse_existing and scores_out.exists():
         if verbose:
@@ -156,21 +165,52 @@ def build_mvp_outputs(
     else:
         if verbose:
             print("[pipeline] building grid", flush=True)
-        grid = build_hex_grid(boundary, cell_diameter_m=cell_diameter_m, tile_size_m=tile_size_m, verbose=verbose)
+        grid = build_hex_grid(
+            boundary,
+            cell_diameter_m=cell_diameter_m,
+            tile_size_m=tile_size_m,
+            verbose=verbose,
+            checkpoint_dir=grid_tiles_dir,
+        )
         write_geoparquet(grid, grid_out)
 
     if verbose:
         print("[pipeline] habitat share", flush=True)
-    habitat_share = add_habitat_share_feature(grid, habitat, tile_size_m=tile_size_m, verbose=verbose)
+    habitat_share = add_habitat_share_feature(
+        grid,
+        habitat,
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=habitat_share_dir,
+    )
     if verbose:
         print("[pipeline] habitat distance", flush=True)
-    habitat_distance = add_distance_to_habitat_feature(grid, habitat, tile_size_m=tile_size_m, verbose=verbose)
+    habitat_distance = add_distance_to_habitat_feature(
+        grid,
+        habitat,
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=habitat_distance_dir,
+    )
     if verbose:
         print("[pipeline] ALC feature", flush=True)
-    alc_feature = add_alc_opportunity_feature(grid, alc, grade_column="alc_grade", tile_size_m=tile_size_m, verbose=verbose)
+    alc_feature = add_alc_opportunity_feature(
+        grid,
+        alc,
+        grade_column="alc_grade",
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=alc_feature_dir,
+    )
 
     features = combine_feature_table(grid, habitat_share, habitat_distance, alc_feature)
+    expected_full_hex_area_m2 = 3 * (3**0.5) / 2 * ((cell_diameter_m / 2) ** 2)
+    features["cell_area_ratio"] = (
+        features.geometry.area / expected_full_hex_area_m2
+    ).clip(lower=0, upper=1)
     features = add_connectivity_score(features)
+    features = add_restoration_opportunity_scores(features)
+    features = add_boundary_penalty(features)
 
     # Placeholder scores until flood and peat layers are wired in.
     features["flood_opportunity_score_raw"] = 0.0

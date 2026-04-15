@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import geopandas as gpd
 import numpy as np
 import pandas as pd
@@ -19,14 +21,17 @@ CORINE_HABITAT_PREFIXES = ("3", "4")
 def iter_grid_chunks(
     grid: gpd.GeoDataFrame,
     tile_size_m: float = 50_000,
-) -> list[gpd.GeoDataFrame]:
+) -> list[tuple[int, gpd.GeoDataFrame]]:
     """Split a grid into deterministic spatial chunks using centroid tiles."""
 
     working = grid.copy()
     centroids = working.geometry.centroid
     working["_tile_x"] = ((centroids.x // tile_size_m).astype(int)).astype("int64")
     working["_tile_y"] = ((centroids.y // tile_size_m).astype(int)).astype("int64")
-    return [chunk.drop(columns=["_tile_x", "_tile_y"]) for _, chunk in working.groupby(["_tile_x", "_tile_y"], sort=True)]
+    return [
+        (index, chunk.drop(columns=["_tile_x", "_tile_y"]))
+        for index, (_, chunk) in enumerate(working.groupby(["_tile_x", "_tile_y"], sort=True), start=1)
+    ]
 
 
 def _source_subset(source: gpd.GeoDataFrame, bounds: tuple[float, float, float, float]) -> gpd.GeoDataFrame:
@@ -42,12 +47,18 @@ def _source_subset(source: gpd.GeoDataFrame, bounds: tuple[float, float, float, 
     return subset[subset.geometry.intersects(clip_box)].copy()
 
 
+def _checkpoint_file(checkpoint_dir: Path, prefix: str, chunk_index: int) -> Path:
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    return checkpoint_dir / f"{prefix}_{chunk_index:05d}.parquet"
+
+
 def add_habitat_share_feature(
     grid: gpd.GeoDataFrame,
     habitat: gpd.GeoDataFrame,
     feature_name: str = "priority_habitat_share",
     tile_size_m: float = 50_000,
     verbose: bool = False,
+    checkpoint_dir: Path | None = None,
 ) -> gpd.GeoDataFrame:
     """Compute the proportion of each hex covered by habitat polygons."""
 
@@ -56,19 +67,33 @@ def add_habitat_share_feature(
     habitat = habitat.copy()
 
     chunks: list[pd.DataFrame] = []
-    for index, chunk in enumerate(iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m), start=1):
+    for index, chunk in iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m):
+        if checkpoint_dir is not None:
+            checkpoint = _checkpoint_file(checkpoint_dir, "habitat_share", index)
+            if checkpoint.exists():
+                chunks.append(pd.read_parquet(checkpoint))
+                if verbose:
+                    print(f"[habitat_share] chunk {index}: reuse", flush=True)
+                continue
+
         chunk = chunk.copy()
         chunk["hex_area_m2"] = chunk.geometry.area
         subset = _source_subset(habitat[["geometry"]], chunk.total_bounds)
         if subset.empty:
             chunk[feature_name] = 0.0
-            chunks.append(chunk[["hex_id", feature_name]])
+            result = chunk[["hex_id", feature_name]]
+            if checkpoint_dir is not None:
+                result.to_parquet(checkpoint)
+            chunks.append(result)
             continue
 
         intersections = gpd.overlay(chunk[["hex_id", "geometry"]], subset, how="intersection")
         if intersections.empty:
             chunk[feature_name] = 0.0
-            chunks.append(chunk[["hex_id", feature_name]])
+            result = chunk[["hex_id", feature_name]]
+            if checkpoint_dir is not None:
+                result.to_parquet(checkpoint)
+            chunks.append(result)
             continue
 
         coverage = (
@@ -79,7 +104,10 @@ def add_habitat_share_feature(
         merged = chunk.merge(coverage, on="hex_id", how="left")
         merged["intersection_area_m2"] = merged["intersection_area_m2"].fillna(0)
         merged[feature_name] = merged["intersection_area_m2"] / merged["hex_area_m2"]
-        chunks.append(merged[["hex_id", feature_name]])
+        result = merged[["hex_id", feature_name]]
+        if checkpoint_dir is not None:
+            result.to_parquet(checkpoint)
+        chunks.append(result)
         if verbose:
             print(f"[habitat_share] chunk {index}: {len(chunk)} cells", flush=True)
 
@@ -108,6 +136,7 @@ def add_distance_to_habitat_feature(
     feature_name: str = "distance_to_priority_habitat_m",
     tile_size_m: float = 50_000,
     verbose: bool = False,
+    checkpoint_dir: Path | None = None,
 ) -> gpd.GeoDataFrame:
     """Compute nearest distance from hex centroids to habitat polygons."""
 
@@ -116,7 +145,15 @@ def add_distance_to_habitat_feature(
     habitat = habitat.copy()
 
     chunks: list[pd.DataFrame] = []
-    for index, chunk in enumerate(iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m), start=1):
+    for index, chunk in iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m):
+        if checkpoint_dir is not None:
+            checkpoint = _checkpoint_file(checkpoint_dir, "distance", index)
+            if checkpoint.exists():
+                chunks.append(pd.read_parquet(checkpoint))
+                if verbose:
+                    print(f"[distance] chunk {index}: reuse", flush=True)
+                continue
+
         centroids = chunk.copy()
         centroids["geometry"] = centroids.geometry.centroid
         joined = gpd.sjoin_nearest(
@@ -125,7 +162,10 @@ def add_distance_to_habitat_feature(
             how="left",
             distance_col=feature_name,
         )
-        chunks.append(joined[["hex_id", feature_name]])
+        result = joined[["hex_id", feature_name]]
+        if checkpoint_dir is not None:
+            result.to_parquet(checkpoint)
+        chunks.append(result)
         if verbose:
             print(f"[distance] chunk {index}: {len(chunk)} cells", flush=True)
 
@@ -139,6 +179,7 @@ def add_alc_opportunity_feature(
     feature_name: str = "agri_opportunity_score_raw",
     tile_size_m: float = 50_000,
     verbose: bool = False,
+    checkpoint_dir: Path | None = None,
 ) -> gpd.GeoDataFrame:
     """Assign an agriculture opportunity score from dominant ALC grade per hex."""
 
@@ -147,11 +188,22 @@ def add_alc_opportunity_feature(
     alc = alc.copy()
 
     chunks: list[pd.DataFrame] = []
-    for index, chunk in enumerate(iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m), start=1):
+    for index, chunk in iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m):
+        if checkpoint_dir is not None:
+            checkpoint = _checkpoint_file(checkpoint_dir, "alc", index)
+            if checkpoint.exists():
+                chunks.append(pd.read_parquet(checkpoint))
+                if verbose:
+                    print(f"[alc] chunk {index}: reuse", flush=True)
+                continue
+
         subset = _source_subset(alc[[grade_column, "geometry"]], chunk.total_bounds)
         if subset.empty:
             chunk[feature_name] = np.nan
-            chunks.append(chunk[["hex_id", feature_name]])
+            result = chunk[["hex_id", feature_name]]
+            if checkpoint_dir is not None:
+                result.to_parquet(checkpoint)
+            chunks.append(result)
             continue
 
         intersections = gpd.overlay(
@@ -161,7 +213,10 @@ def add_alc_opportunity_feature(
         )
         if intersections.empty:
             chunk[feature_name] = np.nan
-            chunks.append(chunk[["hex_id", feature_name]])
+            result = chunk[["hex_id", feature_name]]
+            if checkpoint_dir is not None:
+                result.to_parquet(checkpoint)
+            chunks.append(result)
             continue
 
         intersections["intersection_area_m2"] = intersections.geometry.area
@@ -171,7 +226,10 @@ def add_alc_opportunity_feature(
             .copy()
         )
         dominant[feature_name] = dominant[grade_column].apply(_normalize_alc_grade).map(ALC_OPPORTUNITY_MAP)
-        chunks.append(dominant[["hex_id", feature_name]])
+        result = dominant[["hex_id", feature_name]]
+        if checkpoint_dir is not None:
+            result.to_parquet(checkpoint)
+        chunks.append(result)
         if verbose:
             print(f"[alc] chunk {index}: {len(chunk)} cells", flush=True)
 
