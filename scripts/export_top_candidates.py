@@ -10,6 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.geography import attach_geography_name, summarize_named_geography
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -18,7 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary/hex_scores.parquet"),
+        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
         help="Path to the scored hex layer.",
     )
     parser.add_argument(
@@ -40,8 +42,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("outouts/top_candidates"),
+        default=Path("outputs/top_candidates_1km"),
         help="Directory for CSV, GeoJSON, and summary outputs.",
+    )
+    parser.add_argument(
+        "--lnrs-path",
+        type=Path,
+        default=Path("data/raw/reference/lnrs_boundaries.geojson"),
+        help="Optional LNRS geography used to add policy-area names and slices.",
+    )
+    parser.add_argument(
+        "--lnrs-name-column",
+        type=str,
+        default=None,
+        help="Optional LNRS name column override.",
     )
     return parser.parse_args()
 
@@ -50,6 +64,13 @@ def main() -> None:
     args = parse_args()
     gdf = gpd.read_parquet(args.scores_path)
     ranked = gdf.sort_values(args.scenario, ascending=False).head(args.top_n).copy()
+    ranked = attach_geography_name(
+        ranked,
+        args.lnrs_path,
+        join_key="hex_id",
+        output_column="lnrs_name",
+        name_column=args.lnrs_name_column,
+    )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"{args.scenario}_top_{args.top_n}"
@@ -63,12 +84,16 @@ def main() -> None:
 
     top_columns = [
         "hex_id",
+        "lnrs_name",
         args.scenario,
         "cell_area_ratio",
         "undersized_cell_penalty",
         "priority_habitat_share",
         "connectivity_score",
         "restoration_opportunity_score",
+        "bird_observation_score_raw",
+        "bird_species_richness",
+        "bird_record_count",
         "habitat_mosaic_score",
         "agri_opportunity_score_raw",
     ]
@@ -88,6 +113,21 @@ def main() -> None:
         "",
         ranked[top_columns].head(10).round(2).to_string(index=False),
     ]
+
+    lnrs_summary = summarize_named_geography(
+        ranked,
+        name_column="lnrs_name",
+        score_column=args.scenario,
+    )
+    if not lnrs_summary.empty:
+        summary.extend(
+            [
+                "",
+                "## LNRS slice summary",
+                "",
+                lnrs_summary.rename(columns={"lnrs_name": "lnrs"}).round(2).to_string(index=False),
+            ]
+        )
 
     summary_path.write_text("\n".join(summary) + "\n")
 

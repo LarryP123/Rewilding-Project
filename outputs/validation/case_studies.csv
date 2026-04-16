@@ -1,0 +1,4 @@
+case_type,hex_id,admin_name,headline,detail
+stable_across_objectives,hex_0077601,North Yorkshire,Consistently strong under all three objectives,"Ranks 1, 43, and 46 across the three scenarios; strongest signals are connectivity 100.0, lower agricultural conflict 100.0, peat opportunity 100.0."
+nature_first_specialist,hex_0054698,Blackburn with Darwen,"Moves up when peat, flood, and biodiversity matter more","Nature-first rank 50 versus balanced rank 95; strongest signals are habitat share 100.0, connectivity 100.0, lower agricultural conflict 100.0."
+low_conflict_specialist,hex_0021003,Cheshire West and Chester,Useful where delivery feasibility matters most,"Low-conflict rank 41 versus balanced rank 153; strongest signals are connectivity 100.0, lower agricultural conflict 100.0, restoration opportunity 99.1."

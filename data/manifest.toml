@@ -1,0 +1,112 @@
+# Canonical published result
+# --------------------------
+# The repository's current "official" published outputs (top-100 shortlist,
+# candidate clusters, inspection maps, brief, and app) are built from the
+# v4 1 km official-boundary scored layer:
+#   data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet
+#
+# Dedicated flood / peat source files and the newer bird-enriched runs are
+# tracked below, but they are optional and are not part of that locked
+# published result.
+
+[[dataset]]
+name = "alc_raw"
+stage = "raw"
+path = "data/raw/alc/ALC_Grades_(Provisional)___ADAS_&_Defra.shp"
+description = "Primary Agricultural Land Classification shapefile used in the locked published result."
+
+[[dataset]]
+name = "corine_raw"
+stage = "raw"
+path = "data/raw/corine/U2018_CLC2018_V2020_20u1.gpkg"
+description = "CORINE 2018 geopackage used for habitat context and as the fallback flood and peat source in the locked published result."
+
+[[dataset]]
+name = "flood_raw_dedicated"
+stage = "raw"
+path = "data/raw/flood/ea_flood_zones.parquet"
+required = false
+description = "Optional dedicated flood dataset for newer local runs; not part of the locked published result."
+
+[[dataset]]
+name = "peat_raw_dedicated"
+stage = "raw"
+path = "data/raw/peat/england_peat_map.parquet"
+required = false
+description = "Optional dedicated peat dataset for newer local runs; not part of the locked published result."
+
+[[dataset]]
+name = "england_boundary_analysis"
+stage = "raw"
+path = "data/raw/boundaries/england_boundary_analysis.parquet"
+description = "Official England analysis boundary used by the locked published 1 km result."
+
+[[dataset]]
+name = "lnrs_boundaries"
+stage = "raw"
+path = "data/raw/reference/lnrs_boundaries.geojson"
+required = false
+description = "Optional LNRS geography used for policy slicing and summary outputs."
+
+[[dataset]]
+name = "corine_subset"
+stage = "interim"
+path = "data/interim/corine_subset.parquet"
+description = "Cached England-focused CORINE subset reused by the local pipeline."
+
+[[dataset]]
+name = "bird_observations_irecord_verified"
+stage = "interim"
+path = "data/interim/bird_observations_irecord_verified_2015plus_england.parquet"
+required = false
+description = "Optional cached bird observation layer used by newer enriched runs; not part of the locked published result."
+
+[[dataset]]
+name = "alc_clean"
+stage = "interim"
+path = "data/interim/alc_clean.parquet"
+description = "Cleaned and reprojected ALC cache reused by the locked published result."
+
+[[dataset]]
+name = "flood_dedicated_clean"
+stage = "interim"
+path = "data/interim/flood_ea_flood_zones_clean.parquet"
+required = false
+description = "Optional cleaned dedicated flood cache produced for newer local runs."
+
+[[dataset]]
+name = "peat_dedicated_clean"
+stage = "interim"
+path = "data/interim/peat_england_peat_map_clean.parquet"
+required = false
+description = "Optional cleaned dedicated peat cache produced for newer local runs."
+
+[[dataset]]
+name = "official_result_boundary"
+stage = "interim"
+path = "data/interim/mvp_official_boundary_1km_v4/analysis_boundary.parquet"
+description = "Canonical analysis boundary artifact for the locked published result."
+
+[[dataset]]
+name = "official_result_corine_subset"
+stage = "interim"
+path = "data/interim/mvp_official_boundary_1km_v4/corine_england_subset.parquet"
+description = "Canonical CORINE subset artifact for the locked published result."
+
+[[dataset]]
+name = "official_result_habitat_proxy"
+stage = "interim"
+path = "data/interim/mvp_official_boundary_1km_v4/habitat_proxy.parquet"
+description = "Canonical habitat proxy artifact for the locked published result."
+
+[[dataset]]
+name = "official_result_grid"
+stage = "interim"
+path = "data/interim/mvp_official_boundary_1km_v4/hex_grid.parquet"
+description = "Canonical 1 km analysis grid for the locked published result."
+
+[[dataset]]
+name = "official_result_scores"
+stage = "interim"
+path = "data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"
+description = "Canonical scored-grid artifact backing the repository's current published outputs."

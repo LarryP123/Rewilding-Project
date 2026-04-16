@@ -46,6 +46,23 @@ SUPPLEMENTAL_METRICS = [
     ("cell_area_ratio", "Area ratio"),
 ]
 
+PARAMETER_NOTES = {
+    "tradeoff_lens": "Preset lenses are starting mixes of weights. They express different policy priorities, while custom mode lets you rebalance the same component scores yourself.",
+    "minimum_score": "This filter hides weaker candidates under the active lens. Scores are relative screening scores, not probabilities or guaranteed outcomes.",
+    "minimum_connectivity": "Connectivity is an inverse distance score to existing priority habitat. Higher values mean a cell sits nearer to current habitat networks.",
+    "list_size": "This only changes how many filtered cells are listed in the right-hand shortlist. It does not change the underlying map or ranking.",
+    "restoration_opportunity_score": "Favors cells that sit near habitat but still have room for recovery, rather than cells already dominated by habitat cover.",
+    "flood_opportunity_score_raw": "A screening signal for wetland or floodplain restoration opportunity. Higher values suggest stronger hydrological restoration context.",
+    "peat_opportunity_score_raw": "A screening signal for peatland restoration context. Higher values suggest stronger peat-related restoration opportunity.",
+    "agri_opportunity_score_raw": "A land-use tradeoff signal derived from agricultural land quality. Higher values mean the cell looks less constrained by top-grade farmland.",
+    "habitat_mosaic_score": "Rewards mixed habitat contexts rather than either empty cells or cells already fully occupied by priority habitat.",
+    "bird_observation_score_raw": "Where present, this observation-based biodiversity indicator reflects recorded bird richness adjusted for record coverage rather than a full biodiversity model.",
+    "priority_habitat_share": "Percent of the cell already covered by priority habitat. Useful for understanding whether a candidate is intact habitat, a mosaic, or an adjacency opportunity.",
+    "distance_to_priority_habitat_m": "Representative-point distance to the nearest priority habitat patch in meters.",
+    "cell_area_ratio": "How much of a full hex remains after clipping at the analysis boundary. Lower values indicate edge fragments.",
+    "undersized_cell_penalty": "Boundary adjustment applied to clipped cells so partial edge hexes do not outrank full cells purely by accident.",
+}
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -78,7 +95,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-html",
         type=Path,
-        default=Path("outouts/app/rewilding_opportunity_explorer.html"),
+        default=Path("outputs/app/rewilding_opportunity_explorer.html"),
         help="Destination HTML file.",
     )
     parser.add_argument(
@@ -328,6 +345,11 @@ def build_html(
             {"column": column, "label": COMPONENT_LABELS[column]}
             for column in component_columns
         ],
+        "parameterNotes": {
+            column: PARAMETER_NOTES[column]
+            for column in component_columns
+            if column in PARAMETER_NOTES
+        },
         "presets": presets,
         "initialMode": "scenario_balanced",
         "initialHexId": initial_hex,
@@ -530,6 +552,44 @@ def build_html(
       border: 1px solid var(--line);
       border-radius: 20px;
     }}
+    .parameter-panel {{
+      padding: 14px 16px;
+      background: rgba(255, 252, 247, 0.82);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }}
+    .parameter-panel h3 {{
+      margin: 0;
+      font-size: 1rem;
+    }}
+    .parameter-panel p {{
+      margin: 8px 0 0 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }}
+    .parameter-grid {{
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }}
+    .parameter-card {{
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.72);
+    }}
+    .parameter-card strong {{
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }}
+    .parameter-card span {{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }}
     .weighting-panel h2 {{
       margin: 0;
       font-size: 1.15rem;
@@ -575,6 +635,12 @@ def build_html(
       gap: 10px;
       color: var(--muted);
       font-size: 12px;
+    }}
+    .slider-help {{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }}
     .preset-stack {{
       display: grid;
@@ -708,6 +774,55 @@ def build_html(
       color: var(--muted);
       font-size: 13px;
     }}
+    .map-tooltip {{
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 4;
+      width: min(280px, calc(100% - 32px));
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(35, 49, 40, 0.14);
+      background: rgba(255, 252, 247, 0.96);
+      box-shadow: 0 14px 36px rgba(21, 28, 25, 0.18);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      opacity: 0;
+      transform: translate3d(0, 0, 0);
+      transition: opacity 100ms ease;
+    }}
+    .map-tooltip.visible {{
+      opacity: 1;
+    }}
+    .map-tooltip-title {{
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+    }}
+    .map-tooltip-subtitle {{
+      margin-top: 3px;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }}
+    .map-tooltip-grid {{
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }}
+    .map-tooltip-grid strong {{
+      color: var(--ink);
+      font-size: 13px;
+    }}
+    .map-tooltip-note {{
+      margin-top: 10px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: var(--muted);
+    }}
     .sidebar {{
       padding: 18px;
       display: grid;
@@ -833,6 +948,14 @@ def build_html(
       line-height: 1.5;
       font-size: 14px;
     }}
+    .methods-note {{
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }}
     .list-card {{
       display: grid;
       grid-template-rows: auto minmax(0, 1fr);
@@ -892,19 +1015,22 @@ def build_html(
       color: var(--muted);
       font-size: 12px;
     }}
-    @media (max-width: 1240px) {{
+	    @media (max-width: 1240px) {{
       .shell {{
         grid-template-columns: 1fr;
       }}
       .hero,
       .controls,
-      .weighting-panel {{
-        grid-template-columns: 1fr;
-      }}
-      .sidebar {{
-        grid-template-rows: auto auto auto;
-      }}
-    }}
+	      .weighting-panel {{
+	        grid-template-columns: 1fr;
+	      }}
+          .parameter-grid {{
+            grid-template-columns: 1fr;
+          }}
+	      .sidebar {{
+	        grid-template-rows: auto auto auto;
+	      }}
+	    }}
   </style>
 </head>
 <body>
@@ -974,6 +1100,7 @@ def build_html(
           <button type="button" id="zoom-selected">Zoom To Selected</button>
           <button type="button" id="reset-view">Reset</button>
         </div>
+        <div class="map-tooltip" id="map-tooltip" aria-hidden="true"></div>
         <svg id="inspection-map" viewBox="0 0 {width} {height}" role="img" aria-label="Shortlisted rewilding opportunity cells in England">
           {"".join(context_outline_markup)}
           {"".join(context_label_markup)}
@@ -984,6 +1111,18 @@ def build_html(
         <div class="map-note">
           <span id="map-status">Showing the packaged shortlist.</span>
           <span>Mouse wheel zooms, drag pans, click a cell for the explanation panel.</span>
+        </div>
+      </div>
+
+      <div class="parameter-panel">
+        <div class="eyebrow" style="margin-bottom:6px;">How To Read It</div>
+        <h3>What the main parameters mean</h3>
+        <p>This app is a screening tool. The controls below help compare tradeoff lenses and trim the shortlist, but they do not replace local site checks or detailed feasibility work.</p>
+        <div class="parameter-grid">
+          <div class="parameter-card"><strong>Tradeoff lens</strong><span>{html.escape(PARAMETER_NOTES["tradeoff_lens"])}</span></div>
+          <div class="parameter-card"><strong>Minimum score</strong><span>{html.escape(PARAMETER_NOTES["minimum_score"])}</span></div>
+          <div class="parameter-card"><strong>Minimum connectivity</strong><span>{html.escape(PARAMETER_NOTES["minimum_connectivity"])}</span></div>
+          <div class="parameter-card"><strong>List size</strong><span>{html.escape(PARAMETER_NOTES["list_size"])}</span></div>
         </div>
       </div>
     </section>
@@ -1013,6 +1152,18 @@ def build_html(
         <div class="metric-grid" id="support-metric-grid">{initial_support_cards}</div>
         <div class="explain-list" id="explain-list"></div>
         <div class="why-text" id="why-text"></div>
+        <div class="methods-note">
+          <strong style="display:block;color:var(--ink);margin-bottom:6px;">Signal guide</strong>
+          <div><strong>Restoration opportunity:</strong> {html.escape(PARAMETER_NOTES["restoration_opportunity_score"])}</div>
+          <div><strong>Flood opportunity:</strong> {html.escape(PARAMETER_NOTES["flood_opportunity_score_raw"])}</div>
+          <div><strong>Peat opportunity:</strong> {html.escape(PARAMETER_NOTES["peat_opportunity_score_raw"])}</div>
+          <div><strong>Agricultural opportunity:</strong> {html.escape(PARAMETER_NOTES["agri_opportunity_score_raw"])}</div>
+          <div><strong>Habitat mosaic:</strong> {html.escape(PARAMETER_NOTES["habitat_mosaic_score"])}</div>
+          <div><strong>Bird observation score:</strong> {html.escape(PARAMETER_NOTES["bird_observation_score_raw"])}</div>
+          <div><strong>Priority habitat share:</strong> {html.escape(PARAMETER_NOTES["priority_habitat_share"])}</div>
+          <div><strong>Distance to habitat:</strong> {html.escape(PARAMETER_NOTES["distance_to_priority_habitat_m"])}</div>
+          <div><strong>Area ratio / boundary factor:</strong> {html.escape(PARAMETER_NOTES["cell_area_ratio"])} {html.escape(PARAMETER_NOTES["undersized_cell_penalty"])}</div>
+        </div>
       </section>
 
       <section class="list-card">
@@ -1043,6 +1194,7 @@ def build_html(
     const weightTotal = document.getElementById('weight-total');
     const weightingNote = document.getElementById('weighting-note');
     const cellLayer = document.getElementById('cell-layer');
+    const mapTooltip = document.getElementById('map-tooltip');
     const shortlistEl = document.getElementById('shortlist');
     const mapStatus = document.getElementById('map-status');
     const listTitle = document.getElementById('list-title');
@@ -1061,6 +1213,7 @@ def build_html(
     const whyText = document.getElementById('why-text');
     const areaSummary = document.getElementById('area-summary');
     const svg = document.getElementById('inspection-map');
+    const mapCard = document.querySelector('.map-card');
 
     const featureMap = new Map(APP.features.map((feature) => [feature.hex_id, feature]));
     const cellElements = new Map();
@@ -1223,6 +1376,51 @@ def build_html(
         .sort((a, b) => b.weighted - a.weighted);
     }}
 
+    function tooltipHtml(feature) {{
+      const props = feature.properties;
+      const contributions = contributionRows(feature);
+      const topDriver = contributions[0];
+      return `
+        <div class="map-tooltip-title">${{props.admin_name || props.hex_id}}</div>
+        <div class="map-tooltip-subtitle">${{props.hex_id}}</div>
+        <div class="map-tooltip-grid">
+          <span>Active score</span>
+          <strong>${{scoreFor(feature).toFixed(2)}}</strong>
+          <span>Rank</span>
+          <strong>#${{rankFor(feature)}}</strong>
+          <span>Connectivity</span>
+          <strong>${{props.connectivity_score.toFixed(1)}}</strong>
+          <span>Habitat share</span>
+          <strong>${{props.priority_habitat_share.toFixed(1)}}%</strong>
+        </div>
+        <div class="map-tooltip-note">
+          Strongest weighted driver: <strong>${{topDriver.label}}</strong> at raw score ${{topDriver.raw.toFixed(1)}}.
+        </div>
+      `;
+    }}
+
+    function hideTooltip() {{
+      mapTooltip.classList.remove('visible');
+      mapTooltip.setAttribute('aria-hidden', 'true');
+    }}
+
+    function showTooltip(feature, event) {{
+      mapTooltip.innerHTML = tooltipHtml(feature);
+      mapTooltip.classList.add('visible');
+      mapTooltip.setAttribute('aria-hidden', 'false');
+
+      const cardRect = mapCard.getBoundingClientRect();
+      const tooltipRect = mapTooltip.getBoundingClientRect();
+      const offsetX = 18;
+      const offsetY = 18;
+      const maxLeft = Math.max(12, cardRect.width - tooltipRect.width - 12);
+      const maxTop = Math.max(12, cardRect.height - tooltipRect.height - 12);
+      const left = clamp(event.clientX - cardRect.left + offsetX, 12, maxLeft);
+      const top = clamp(event.clientY - cardRect.top + offsetY, 12, maxTop);
+      mapTooltip.style.left = `${{left}}px`;
+      mapTooltip.style.top = `${{top}}px`;
+    }}
+
     function buildNarrative(feature, contributions) {{
       const props = feature.properties;
       const leaders = contributions.slice(0, 3).map((row) => row.label.toLowerCase());
@@ -1314,6 +1512,7 @@ def build_html(
         const value = currentMode === 'custom'
           ? Number(customWeights[component.column] || 0)
           : Number(weights[component.column] || 0);
+        const helpText = APP.parameterNotes[component.column] || '';
         return `
           <label class="slider-card">
             <div class="slider-head">
@@ -1325,6 +1524,7 @@ def build_html(
               <span>${{currentMode === 'custom' ? 'Live custom weight' : 'Preset starting weight'}}</span>
               <span>${{Math.round(Number(customWeights[component.column] || 0) * 100)}}%</span>
             </div>
+            <div class="slider-help">${{helpText}}</div>
           </label>
         `;
       }}).join('');
@@ -1482,6 +1682,13 @@ def build_html(
           polygon.setAttribute('points', points);
           polygon.setAttribute('class', 'cell');
           polygon.dataset.hexId = feature.hex_id;
+          polygon.addEventListener('pointerenter', (event) => {{
+            showTooltip(feature, event);
+          }});
+          polygon.addEventListener('pointermove', (event) => {{
+            showTooltip(feature, event);
+          }});
+          polygon.addEventListener('pointerleave', hideTooltip);
           polygon.addEventListener('click', () => {{
             activeHexId = feature.hex_id;
             render();
@@ -1522,6 +1729,7 @@ def build_html(
     scoreFilter.addEventListener('input', render);
     connectivityFilter.addEventListener('input', render);
     listSize.addEventListener('change', render);
+    svg.addEventListener('pointerleave', hideTooltip);
 
     svg.addEventListener('wheel', (event) => {{
       event.preventDefault();

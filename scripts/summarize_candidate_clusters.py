@@ -2,9 +2,20 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 import geopandas as gpd
 import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.geography import (
+    attach_geography_name,
+    dominant_name_by_group,
+    summarize_named_geography,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -42,8 +53,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("outouts/candidate_clusters"),
+        default=Path("outputs/candidate_clusters"),
         help="Directory for summary outputs.",
+    )
+    parser.add_argument(
+        "--lnrs-path",
+        type=Path,
+        default=Path("data/raw/reference/lnrs_boundaries.geojson"),
+        help="Optional LNRS geography used to slice top cells and zones by policy area.",
+    )
+    parser.add_argument(
+        "--lnrs-name-column",
+        type=str,
+        default=None,
+        help="Optional LNRS name column override.",
     )
     return parser.parse_args()
 
@@ -101,11 +124,29 @@ def cluster_summary(top_with_clusters: gpd.GeoDataFrame, scenario: str) -> pd.Da
         .reset_index(drop=True)
     )
     summary["cluster_rank"] = range(1, len(summary) + 1)
+    lnrs_summary = dominant_name_by_group(
+        working,
+        group_column="cluster_id",
+        name_column="lnrs_name",
+        score_column=scenario,
+        primary_output_column="primary_lnrs_name",
+        list_output_column="lnrs_names",
+        count_output_column="lnrs_count",
+    )
+    if not lnrs_summary.empty:
+        summary = summary.merge(lnrs_summary, on="cluster_id", how="left")
+    else:
+        summary["primary_lnrs_name"] = pd.NA
+        summary["lnrs_names"] = pd.NA
+        summary["lnrs_count"] = pd.NA
     return summary[
         [
             "cluster_rank",
             "cluster_id",
             "cell_count",
+            "primary_lnrs_name",
+            "lnrs_names",
+            "lnrs_count",
             "scenario_score_max",
             "scenario_score_mean",
             "habitat_share_mean",
@@ -127,6 +168,7 @@ def top_cells_text(top_with_clusters: gpd.GeoDataFrame, scenario: str, cluster_i
     return subset[
         [
             "hex_id",
+            "lnrs_name",
             scenario,
             "priority_habitat_share",
             "connectivity_score",
@@ -139,6 +181,13 @@ def main() -> None:
     args = parse_args()
     scores = gpd.read_parquet(args.scores_path)
     top = scores.sort_values(args.scenario, ascending=False).head(args.top_n).copy()
+    top = attach_geography_name(
+        top,
+        args.lnrs_path,
+        join_key="hex_id",
+        output_column="lnrs_name",
+        name_column=args.lnrs_name_column,
+    )
     clusters, top_with_clusters = build_clusters(top, args.cluster_distance_m)
 
     summary = cluster_summary(top_with_clusters, args.scenario)
@@ -167,10 +216,30 @@ def main() -> None:
         "## Zone summary",
         "",
         summary.round(2).to_string(index=False),
-        "",
-        "## Top cells per zone",
-        "",
     ]
+
+    lnrs_slice_summary = summarize_named_geography(
+        top_with_clusters,
+        name_column="lnrs_name",
+        score_column=args.scenario,
+    )
+    if not lnrs_slice_summary.empty:
+        lines.extend(
+            [
+                "",
+                "## LNRS slice summary",
+                "",
+                lnrs_slice_summary.rename(columns={"lnrs_name": "lnrs"}).round(2).to_string(index=False),
+            ]
+        )
+
+    lines.extend(
+        [
+            "",
+            "## Top cells per zone",
+            "",
+        ]
+    )
 
     for row in summary.itertuples(index=False):
         lines.append(f"### {row.cluster_id} (rank {row.cluster_rank}, {row.cell_count} cells)")

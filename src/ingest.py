@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
+import subprocess
 import warnings
 
 import geopandas as gpd
@@ -100,3 +102,115 @@ def england_bbox_corine() -> tuple[float, float, float, float]:
 
     bounds = england_bbox_wgs84().to_crs(epsg=CORINE_EPSG).total_bounds
     return tuple(bounds)
+
+
+def _curl_json(base_url: str, params: list[tuple[str, object]]) -> dict:
+    """Fetch a JSON payload with curl so networked downloads work in this environment."""
+
+    command = ["curl", "-sS", "-L", "-G", base_url]
+    for key, value in params:
+        command.extend(["--data-urlencode", f"{key}={value}"])
+
+    completed = subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(completed.stdout)
+
+
+def download_nbn_bird_observations(
+    cache_path: Path,
+    *,
+    data_resource_uid: str = "dr3717",
+    state_province: str = "England",
+    year_from: int = 2015,
+    max_coordinate_uncertainty_m: float = 2000,
+    page_size: int = 1000,
+    max_records: int | None = None,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Download and cache observation-based bird records from NBN Atlas."""
+
+    if cache_path.exists():
+        return gpd.read_parquet(cache_path)
+
+    if page_size <= 0:
+        raise ValueError("page_size must be positive.")
+    if max_records is not None and max_records <= 0:
+        raise ValueError("max_records must be positive when provided.")
+
+    base_url = "https://records-ws.nbnatlas.org/occurrences/search"
+    fq_params = [
+        "class:Aves",
+        f"data_resource_uid:{data_resource_uid}",
+        f"stateProvince:{state_province}",
+        f"year:[{year_from} TO *]",
+        f"coordinate_uncertainty:[0 TO {int(max_coordinate_uncertainty_m)}]",
+    ]
+
+    initial_page_size = min(page_size, max_records) if max_records is not None else page_size
+
+    first_payload = _curl_json(
+        base_url,
+        [("q", "*:*"), *[("fq", value) for value in fq_params], ("pageSize", initial_page_size), ("startIndex", 0)],
+    )
+
+    total_records = int(first_payload.get("totalRecords", 0))
+    if max_records is not None:
+        total_records = min(total_records, max_records)
+
+    rows: list[dict[str, object]] = []
+
+    def _append_rows(payload: dict) -> None:
+        for occurrence in payload.get("occurrences", []):
+            latitude = occurrence.get("decimalLatitude")
+            longitude = occurrence.get("decimalLongitude")
+            species_guid = occurrence.get("speciesGuid")
+            if latitude is None or longitude is None or species_guid in (None, ""):
+                continue
+            rows.append(
+                {
+                    "species_guid": species_guid,
+                    "species_name": occurrence.get("species"),
+                    "year": occurrence.get("year"),
+                    "coordinate_uncertainty_m": occurrence.get("coordinateUncertaintyInMeters"),
+                    "data_resource_uid": occurrence.get("dataResourceUid"),
+                    "data_resource_name": occurrence.get("dataResourceName"),
+                    "basis_of_record": occurrence.get("basisOfRecord"),
+                    "license": occurrence.get("license"),
+                    "geometry": shapely.Point(float(longitude), float(latitude)),
+                }
+            )
+
+    _append_rows(first_payload)
+    if verbose:
+        print(f"[bird_observations] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
+
+    start_index = initial_page_size
+    while start_index < total_records:
+        fetch_size = min(page_size, total_records - start_index)
+        payload = _curl_json(
+            base_url,
+            [
+                ("q", "*:*"),
+                *[("fq", value) for value in fq_params],
+                ("pageSize", fetch_size),
+                ("startIndex", start_index),
+            ],
+        )
+        _append_rows(payload)
+        start_index += fetch_size
+        if verbose:
+            print(f"[bird_observations] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
+
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        result = gpd.GeoDataFrame(frame, geometry=[], crs="EPSG:4326")
+    else:
+        result = gpd.GeoDataFrame(frame, geometry="geometry", crs="EPSG:4326")
+        result = ensure_bng(result)
+
+    write_geoparquet(result, cache_path)
+    return result

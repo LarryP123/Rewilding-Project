@@ -1,0 +1,4 @@
+scenario,top_n,shared_cells,replaced_cells,shared_pct
+scenario_nature_first,100,21,79,21.0
+scenario_balanced,100,54,46,54.0
+scenario_low_conflict,100,71,29,71.0

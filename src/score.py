@@ -1,29 +1,33 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 
 SCENARIO_WEIGHTS = {
     "scenario_nature_first": {
-        "restoration_opportunity_score": 0.45,
+        "restoration_opportunity_score": 0.35,
         "flood_opportunity_score_raw": 0.15,
         "peat_opportunity_score_raw": 0.15,
-        "agri_opportunity_score_raw": 0.15,
-        "habitat_mosaic_score": 0.10,
+        "agri_opportunity_score_raw": 0.10,
+        "habitat_mosaic_score": 0.05,
+        "bird_observation_score_raw": 0.20,
     },
     "scenario_balanced": {
-        "restoration_opportunity_score": 0.35,
+        "restoration_opportunity_score": 0.30,
         "flood_opportunity_score_raw": 0.20,
         "peat_opportunity_score_raw": 0.15,
-        "agri_opportunity_score_raw": 0.20,
-        "habitat_mosaic_score": 0.10,
+        "agri_opportunity_score_raw": 0.15,
+        "habitat_mosaic_score": 0.05,
+        "bird_observation_score_raw": 0.15,
     },
     "scenario_low_conflict": {
-        "restoration_opportunity_score": 0.20,
+        "restoration_opportunity_score": 0.18,
         "flood_opportunity_score_raw": 0.15,
         "peat_opportunity_score_raw": 0.10,
-        "agri_opportunity_score_raw": 0.45,
-        "habitat_mosaic_score": 0.10,
+        "agri_opportunity_score_raw": 0.35,
+        "habitat_mosaic_score": 0.07,
+        "bird_observation_score_raw": 0.15,
     },
 }
 
@@ -88,6 +92,32 @@ def add_restoration_opportunity_scores(
     scored["habitat_mosaic_score"] = (
         100 - ((habitat_share - 20).abs() / 20 * 100)
     ).clip(lower=0, upper=100).round(2)
+
+    return scored
+
+
+def add_bird_observation_scores(
+    frame: pd.DataFrame,
+    richness_column: str = "bird_species_richness",
+    record_count_column: str = "bird_record_count",
+    feature_name: str = "bird_observation_score_raw",
+    target_record_count: int = 20,
+) -> pd.DataFrame:
+    """Build an effort-aware bird observation score from richness and record coverage."""
+
+    if target_record_count <= 0:
+        raise ValueError("target_record_count must be positive.")
+
+    scored = frame.copy()
+    richness = scored[richness_column].fillna(0).clip(lower=0)
+    record_count = scored[record_count_column].fillna(0).clip(lower=0)
+
+    scored["bird_species_richness_score"] = minmax_scale(richness).fillna(0).round(2)
+    coverage = np.log1p(record_count) / np.log1p(target_record_count)
+    scored["bird_record_coverage_score"] = (coverage.clip(0, 1) * 100).round(2)
+    scored[feature_name] = (
+        scored["bird_species_richness_score"] * (scored["bird_record_coverage_score"] / 100)
+    ).round(2)
 
     return scored
 

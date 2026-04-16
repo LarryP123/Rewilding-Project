@@ -9,6 +9,13 @@ import geopandas as gpd
 import pandas as pd
 
 
+SCENARIO_LABELS = {
+    "scenario_nature_first": "Nature-first restoration opportunity",
+    "scenario_balanced": "Balanced restoration opportunity",
+    "scenario_low_conflict": "Lower-conflict restoration opportunity",
+}
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Build a standalone local inspection map for top-ranked rewilding cells.",
@@ -38,20 +45,26 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-html",
         type=Path,
-        default=Path("outouts/maps/scenario_balanced_top_100_map.html"),
+        default=Path("outputs/maps/scenario_balanced_top_100_map.html"),
         help="Destination HTML file.",
     )
     parser.add_argument(
         "--clusters-path",
         type=Path,
-        default=Path("outouts/candidate_clusters/scenario_balanced_top_100_clusters.geojson"),
+        default=Path("outputs/candidate_clusters/scenario_balanced_top_100_clusters.geojson"),
         help="Optional cluster polygon layer to overlay.",
     )
     parser.add_argument(
         "--cluster-summary-path",
         type=Path,
-        default=Path("outouts/candidate_clusters/scenario_balanced_top_100_clusters.csv"),
+        default=Path("outputs/candidate_clusters/scenario_balanced_top_100_clusters.csv"),
         help="Optional cluster summary CSV used for labels.",
+    )
+    parser.add_argument(
+        "--admin-path",
+        type=Path,
+        default=Path("data/raw/reference/ons_counties_unitary_2024.geojson"),
+        help="Administrative geography layer used to attach county/unitary authority names.",
     )
     return parser.parse_args()
 
@@ -185,17 +198,24 @@ def cluster_markup(
                     stroke-width="3"
                     stroke-opacity="0.75"
                     stroke-dasharray="10 8"
-                ></polygon>
+                >
+                    <title>{html.escape(str(getattr(row, "cluster_name", f"Zone {int(row.cluster_rank)}")))}</title>
+                </polygon>
                 """
             )
 
         if "centroid_easting_m" in clusters.columns and "centroid_northing_m" in clusters.columns:
             lx, ly = project(float(row.centroid_easting_m), float(row.centroid_northing_m))
+            rank_text = html.escape(str(int(row.cluster_rank)))
+            admin_text = html.escape(str(getattr(row, "admin_name", ""))) if getattr(row, "admin_name", None) else ""
+            label_title = html.escape(str(getattr(row, "cluster_name", f"Zone {int(row.cluster_rank)}")))
             labels.append(
                 f"""
                 <g class="cluster-label">
+                  <title>{label_title}</title>
                   <circle cx="{lx}" cy="{ly}" r="14" fill="#234b6b" fill-opacity="0.92"></circle>
-                  <text x="{lx}" y="{ly + 5}" text-anchor="middle">{int(row.cluster_rank)}</text>
+                  <text x="{lx}" y="{ly + 5}" text-anchor="middle">{rank_text}</text>
+                  <text class="cluster-admin-text" x="{lx + 20}" y="{ly + 5}" text-anchor="start">{admin_text}</text>
                 </g>
                 """
             )
@@ -229,38 +249,77 @@ def color_for(value: float, min_value: float, max_value: float) -> str:
     return "#{:02x}{:02x}{:02x}".format(*rgb)
 
 
+def scenario_label(name: str) -> str:
+    return SCENARIO_LABELS.get(name, name.replace("_", " ").title())
+
+
 def describe_cluster(row: pd.Series) -> tuple[str, str]:
+    admin_name = row.get("admin_name")
+    policy_name = row.get("primary_lnrs_name")
+    display_name = policy_name if pd.notna(policy_name) else admin_name
     easting = float(row["centroid_easting_m"])
     northing = float(row["centroid_northing_m"])
     cell_count = int(row["cell_count"])
 
     if northing < 130_000 and easting < 300_000:
-        name = "Southwest Peninsula"
+        name = f"Southwest Peninsula ({display_name})" if pd.notna(display_name) else "Southwest Peninsula"
         note = "Compact southwestern cluster with strong restoration scores and a coastal-peninsula setting."
     elif northing > 450_000:
-        name = "Northern England Belt"
+        name = f"Northern England Belt ({display_name})" if pd.notna(display_name) else "Northern England Belt"
         note = "The dominant northern zone, with the biggest concentration of high-scoring cells in the shortlist."
     elif 250_000 <= northing <= 340_000 and easting < 360_000:
-        name = "Central-West Belt"
+        name = f"Central-West Belt ({display_name})" if pd.notna(display_name) else "Central-West Belt"
         note = "A mid-ranking west-central zone that looks like a coherent secondary candidate area."
     elif 330_000 <= northing <= 430_000 and 360_000 <= easting <= 460_000:
-        name = "East-Central Arc"
+        name = f"East-Central Arc ({display_name})" if pd.notna(display_name) else "East-Central Arc"
         note = "A tighter east-central cluster with strong connectivity and slightly leaner habitat share."
     elif northing < 170_000 and easting >= 360_000:
-        name = "Southern Fringe"
+        name = f"Southern Fringe ({display_name})" if pd.notna(display_name) else "Southern Fringe"
         note = "A smaller southern grouping of candidates, useful as a lower-density comparison zone."
     else:
         vertical = "Northern" if northing > 350_000 else "Southern"
         horizontal = "Eastern" if easting > 380_000 else "Western"
-        name = f"{vertical} {horizontal} Zone"
+        name = (
+            f"{vertical} {horizontal} Zone ({display_name})"
+            if pd.notna(display_name)
+            else f"{vertical} {horizontal} Zone"
+        )
         density = "broad" if cell_count >= 5 else "small"
         note = f"A {density} candidate zone that sits outside the main core clusters."
 
     return name, note
 
 
+def attach_admin_names(
+    summary: pd.DataFrame,
+    clusters: gpd.GeoDataFrame,
+    admin_path: Path,
+) -> pd.DataFrame:
+    if not admin_path.exists():
+        summary["admin_name"] = pd.NA
+        return summary
+
+    admins = gpd.read_file(admin_path)
+    name_col = [column for column in admins.columns if column.lower().endswith("nm")][0]
+    admins = admins.to_crs(clusters.crs) if admins.crs != clusters.crs else admins
+    centroids = clusters[["cluster_id", "geometry"]].copy()
+    centroids["geometry"] = centroids.geometry.representative_point()
+    joined = gpd.sjoin(
+        centroids,
+        admins[[name_col, "geometry"]],
+        how="left",
+        predicate="within",
+    ).drop(columns=["index_right"])
+    return summary.merge(
+        joined[["cluster_id", name_col]].rename(columns={name_col: "admin_name"}),
+        on="cluster_id",
+        how="left",
+    )
+
+
 def main() -> None:
     args = parse_args()
+    scenario_title = scenario_label(args.scenario)
     scores = gpd.read_parquet(args.scores_path)
     boundary = gpd.read_parquet("data/raw/boundaries/england_boundary_analysis.parquet")
     clusters = None
@@ -268,19 +327,35 @@ def main() -> None:
         clusters = gpd.read_file(args.clusters_path)
         if args.cluster_summary_path.exists():
             summary = pd.read_csv(args.cluster_summary_path)
+            summary = attach_admin_names(summary, clusters, args.admin_path)
+            descriptions = summary.apply(describe_cluster, axis=1, result_type="expand")
+            summary["cluster_name"] = descriptions[0]
+            summary["cluster_note"] = descriptions[1]
+            summary["cluster_label_short"] = summary.apply(
+                lambda row: (
+                    f"{int(row['cluster_rank'])} {row['admin_name']}"
+                    if pd.notna(row.get("admin_name"))
+                    else str(int(row["cluster_rank"]))
+                ),
+                axis=1,
+            )
             for column in ["cluster_rank", "cell_count", "centroid_easting_m", "centroid_northing_m"]:
                 if column in clusters.columns:
                     clusters = clusters.drop(columns=column)
             clusters = clusters.merge(
-                summary[["cluster_id", "cluster_rank", "cell_count", "centroid_easting_m", "centroid_northing_m"]],
-                on="cluster_id",
-                how="left",
-            )
-            descriptions = summary.apply(describe_cluster, axis=1, result_type="expand")
-            summary["cluster_name"] = descriptions[0]
-            summary["cluster_note"] = descriptions[1]
-            clusters = clusters.merge(
-                summary[["cluster_id", "cluster_name", "cluster_note"]],
+                summary[
+                    [
+                        "cluster_id",
+                        "cluster_rank",
+                        "cell_count",
+                        "centroid_easting_m",
+                        "centroid_northing_m",
+                        "cluster_name",
+                        "cluster_note",
+                        "admin_name",
+                        "cluster_label_short",
+                    ]
+                ],
                 on="cluster_id",
                 how="left",
             )
@@ -303,6 +378,8 @@ def main() -> None:
     )
     cluster_polygons: list[str] = []
     cluster_labels: list[str] = []
+    top_cluster_markup = ""
+    summary_badges = ""
     if clusters is not None and not clusters.empty:
         cluster_polygons, cluster_labels = cluster_markup(clusters, project)
         top_clusters = (
@@ -310,20 +387,33 @@ def main() -> None:
             .sort_values("cluster_rank")
             .head(3)
         )
+        covered_cells = int(top_clusters["cell_count"].sum())
+        coverage_pct = round((covered_cells / args.top_n) * 100) if args.top_n else 0
         cluster_cards = []
         for row in top_clusters.itertuples():
+            meta_parts = [f"{int(row.cell_count)} cells", f"max score {float(row.scenario_score_max):.2f}"]
+            if hasattr(row, "primary_lnrs_name") and pd.notna(row.primary_lnrs_name):
+                meta_parts.append(str(row.primary_lnrs_name))
+            if hasattr(row, "admin_name") and pd.notna(row.admin_name):
+                meta_parts.append(str(row.admin_name))
             cluster_cards.append(
                 f"""
                 <div class="zone-card">
                   <div class="zone-card-title">{int(row.cluster_rank)}. {html.escape(str(row.cluster_name))}</div>
-                  <div class="zone-card-meta">{int(row.cell_count)} cells, max score {float(row.scenario_score_max):.2f}</div>
+                  <div class="zone-card-meta">{html.escape(" | ".join(meta_parts))}</div>
                   <div class="zone-card-note">{html.escape(str(row.cluster_note))}</div>
                 </div>
                 """
             )
         top_cluster_markup = "".join(cluster_cards)
-    else:
-        top_cluster_markup = ""
+        summary_badges = f"""
+        <div class="summary-strip">
+          <div class="summary-pill"><span class="summary-pill-label">Scenario</span><strong>{html.escape(scenario_title)}</strong></div>
+          <div class="summary-pill"><span class="summary-pill-label">Shortlist</span><strong>Top {args.top_n} cells</strong></div>
+          <div class="summary-pill"><span class="summary-pill-label">Lead zones</span><strong>{covered_cells} cells across top 3 zones</strong></div>
+          <div class="summary-pill"><span class="summary-pill-label">Coverage</span><strong>{coverage_pct}% of shortlist</strong></div>
+        </div>
+        """
     property_rows = []
     for row in ranked.itertuples():
         property_rows.append(
@@ -333,6 +423,9 @@ def main() -> None:
                 "priority_habitat_share": round(float(row.priority_habitat_share), 2),
                 "connectivity_score": round(float(row.connectivity_score), 2),
                 "restoration_opportunity_score": round(float(row.restoration_opportunity_score), 2),
+                "bird_observation_score_raw": round(float(getattr(row, "bird_observation_score_raw", 0.0)), 2),
+                "bird_species_richness": round(float(getattr(row, "bird_species_richness", 0.0)), 2),
+                "bird_record_count": round(float(getattr(row, "bird_record_count", 0.0)), 2),
                 "habitat_mosaic_score": round(float(row.habitat_mosaic_score), 2),
                 "agri_opportunity_score_raw": round(float(row.agri_opportunity_score_raw), 2),
                 "cell_area_ratio": round(float(row.cell_area_ratio), 3),
@@ -390,7 +483,7 @@ def main() -> None:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rewilding Inspection Map</title>
+  <title>England Rewilding Opportunity Map</title>
   <style>
     :root {{
       --bg: #f4f1e8;
@@ -403,7 +496,7 @@ def main() -> None:
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
       color: var(--ink);
       background: linear-gradient(180deg, #f8f6ef 0%, #efe9db 100%);
     }}
@@ -433,9 +526,37 @@ def main() -> None:
       color: var(--muted);
       line-height: 1.4;
     }}
+    .summary-strip {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 0 0 14px 0;
+    }}
+    .summary-pill {{
+      display: inline-flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(53, 94, 59, 0.08);
+      border: 1px solid rgba(53, 94, 59, 0.14);
+      min-width: 150px;
+    }}
+    .summary-pill-label {{
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }}
+    .summary-pill strong {{
+      font-size: 14px;
+      line-height: 1.3;
+    }}
     .map-wrap {{
       padding: 0 16px 16px 16px;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }}
     .map-toolbar {{
       position: absolute;
@@ -460,9 +581,10 @@ def main() -> None:
       background: #ffffff;
     }}
     svg {{
-      width: 100%;
+      width: min(100%, calc((100vh - 220px) * 1200 / {height}));
       height: auto;
       display: block;
+      margin: 0 auto;
       background:
         radial-gradient(circle at top left, rgba(255,255,255,0.85), rgba(255,255,255,0.45)),
         #ece6d7;
@@ -489,6 +611,15 @@ def main() -> None:
       font-family: Arial, sans-serif;
       pointer-events: none;
     }}
+    .cluster-admin-text {{
+      fill: #234b6b !important;
+      font-size: 12px !important;
+      font-weight: 700;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 247, 0.95);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }}
     .cluster-label circle {{
       pointer-events: none;
     }}
@@ -514,13 +645,20 @@ def main() -> None:
       backdrop-filter: blur(4px);
     }}
     .sidebar h2 {{
-      margin: 0 0 8px 0;
+      margin: 0 0 4px 0;
       font-size: 18px;
     }}
     .sidebar p {{
       margin: 0 0 14px 0;
       color: var(--muted);
       line-height: 1.4;
+    }}
+    .sidebar-kicker {{
+      margin: 0 0 6px 0;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }}
     .metric {{
       display: grid;
@@ -589,6 +727,9 @@ def main() -> None:
       .layout {{
         grid-template-columns: 1fr;
       }}
+      svg {{
+        width: 100%;
+      }}
       .sidebar {{
         border-left: 0;
         border-top: 1px solid rgba(216, 212, 200, 0.8);
@@ -601,8 +742,9 @@ def main() -> None:
     <div class="main">
       <div class="card">
         <div class="header">
-          <h1>Rewilding Inspection Map</h1>
-          <p>Top {args.top_n} cells by <strong>{html.escape(args.scenario)}</strong>. This viewer is drawn directly in British National Grid so it works offline and avoids the broken reprojection path in this environment.</p>
+          <h1>England Rewilding Opportunity Map</h1>
+          <p>This view shows the top {args.top_n} 1 km cells under the <strong>{html.escape(scenario_title)}</strong> scenario. It is drawn directly in British National Grid so it opens locally and keeps the national shortlist view stable.</p>
+          {summary_badges}
         </div>
         <div class="map-wrap">
           <div class="map-toolbar">
@@ -611,29 +753,33 @@ def main() -> None:
             <button type="button" id="zoom-selected">Zoom To Selected</button>
             <button type="button" id="reset-view">Reset</button>
           </div>
-          <svg id="inspection-map" viewBox="0 0 1200 {height}" role="img" aria-label="Top ranked rewilding cells">
+          <svg id="inspection-map" viewBox="0 0 1200 {height}" role="img" aria-label="Top ranked rewilding opportunity cells in England">
             {"".join(boundary_markup)}
             {"".join(cluster_polygons)}
             {"".join(feature_markup)}
             {"".join(cluster_labels)}
           </svg>
-          <div class="hint">Use the buttons or mouse wheel to zoom. Drag the map to pan. Clicking a cell updates the side panel and recentres the view around it.</div>
+          <div class="hint">Use the buttons or mouse wheel to zoom. Drag the map to pan. Clicking a cell updates the side panel so you can inspect why that area ranks highly.</div>
         </div>
       </div>
     </div>
     <aside class="sidebar">
+      <div class="sidebar-kicker">Selected shortlisted cell</div>
       <h2 id="hex-id">{initial["hex_id"]}</h2>
-      <p>Click any cell on the map to inspect its score components.</p>
-      <div class="metric"><span>{html.escape(args.scenario)} score</span><span id="scenario">{initial["scenario"]:.2f}</span></div>
+      <p>Click any shortlisted cell to inspect the component signals behind its score.</p>
+      <div class="metric"><span>{html.escape(scenario_title)} score</span><span id="scenario">{initial["scenario"]:.2f}</span></div>
       <div class="metric"><span>Habitat share (%)</span><span id="habitat">{initial["priority_habitat_share"]:.2f}</span></div>
       <div class="metric"><span>Connectivity</span><span id="connectivity">{initial["connectivity_score"]:.2f}</span></div>
       <div class="metric"><span>Restoration</span><span id="restoration">{initial["restoration_opportunity_score"]:.2f}</span></div>
+      <div class="metric"><span>Bird observation score</span><span id="bird-score">{initial["bird_observation_score_raw"]:.2f}</span></div>
+      <div class="metric"><span>Bird species richness</span><span id="bird-richness">{initial["bird_species_richness"]:.2f}</span></div>
+      <div class="metric"><span>Bird record count</span><span id="bird-records">{initial["bird_record_count"]:.2f}</span></div>
       <div class="metric"><span>Mosaic</span><span id="mosaic">{initial["habitat_mosaic_score"]:.2f}</span></div>
       <div class="metric"><span>ALC opportunity</span><span id="agri">{initial["agri_opportunity_score_raw"]:.2f}</span></div>
       <div class="metric"><span>Cell area ratio</span><span id="area-ratio">{initial["cell_area_ratio"]:.3f}</span></div>
       <div class="metric"><span>Boundary penalty</span><span id="penalty">{initial["undersized_cell_penalty"]:.3f}</span></div>
       <div class="legend">
-        <strong>Score Legend</strong>
+        <strong>Score scale</strong>
         {"".join(legend_steps)}
       </div>
       <div class="zone-section">
@@ -641,7 +787,7 @@ def main() -> None:
         {top_cluster_markup}
       </div>
       <div class="footer-note">
-        Cells with lower area ratio would be boundary fragments. In the cleaned shortlist, the top-ranked cells are full-size or near-full-size.
+        This is a national screening view. Cells with lower area ratio would be boundary fragments, so the cleaned shortlist favors full-size or near-full-size hexes.
       </div>
     </aside>
   </div>
@@ -702,6 +848,9 @@ def main() -> None:
       document.getElementById('habitat').textContent = props.priority_habitat_share.toFixed(2);
       document.getElementById('connectivity').textContent = props.connectivity_score.toFixed(2);
       document.getElementById('restoration').textContent = props.restoration_opportunity_score.toFixed(2);
+      document.getElementById('bird-score').textContent = props.bird_observation_score_raw.toFixed(2);
+      document.getElementById('bird-richness').textContent = props.bird_species_richness.toFixed(2);
+      document.getElementById('bird-records').textContent = props.bird_record_count.toFixed(2);
       document.getElementById('mosaic').textContent = props.habitat_mosaic_score.toFixed(2);
       document.getElementById('agri').textContent = props.agri_opportunity_score_raw.toFixed(2);
       document.getElementById('area-ratio').textContent = props.cell_area_ratio.toFixed(3);
