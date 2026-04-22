@@ -11,13 +11,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import CANONICAL_SCORES_PATH
+from src.provenance import score_provenance
 from src.score import SCENARIO_WEIGHTS, apply_scenarios
 
 
 NEW_OBJECTIVE_COLUMNS = [
     "flood_opportunity_score_raw",
     "peat_opportunity_score_raw",
-    "bird_observation_score_raw",
+    "biodiversity_observation_score_raw",
 ]
 
 CASE_STUDY_COLUMNS = [
@@ -27,7 +29,7 @@ CASE_STUDY_COLUMNS = [
     "agri_opportunity_score_raw",
     "flood_opportunity_score_raw",
     "peat_opportunity_score_raw",
-    "bird_observation_score_raw",
+    "biodiversity_observation_score_raw",
     "habitat_mosaic_score",
 ]
 
@@ -39,7 +41,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the canonical scored hex layer.",
     )
     parser.add_argument(
@@ -237,7 +239,7 @@ def best_driver_text(row: pd.Series) -> str:
         "agri_opportunity_score_raw": "lower agricultural conflict",
         "flood_opportunity_score_raw": "flood opportunity",
         "peat_opportunity_score_raw": "peat opportunity",
-        "bird_observation_score_raw": "bird observation score",
+        "biodiversity_observation_score_raw": "biodiversity observation score",
         "habitat_mosaic_score": "habitat mosaic",
     }
     return ", ".join(f"{labels.get(column, column)} {value:.1f}" for column, value in ranked)
@@ -328,6 +330,7 @@ def main() -> None:
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     scores = gpd.read_parquet(args.scores_path)
+    provenance = score_provenance(scores, args.scores_path)
     baseline = gpd.read_parquet(args.baseline_path) if args.baseline_path.exists() else None
     scenarios = [scenario for scenario in SCENARIO_WEIGHTS if scenario in scores.columns]
 
@@ -361,6 +364,9 @@ def main() -> None:
         "",
         f"Source layer: `{args.scores_path}`",
         f"Shortlist size: top {args.top_n} cells",
+        f"Run profile: `{provenance['run_profile']}`",
+        f"Flood source: `{provenance['flood_feature_source']}` from `{provenance['flood_source_path'] or 'not recorded'}`",
+        f"Peat source: `{provenance['peat_feature_source']}` from `{provenance['peat_source_path'] or 'not recorded'}`",
         "",
         "## Scenario Stability",
         "",

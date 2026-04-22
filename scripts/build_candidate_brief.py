@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.canonical import CANONICAL_RELEASE_METADATA_PATH, CANONICAL_SCORES_PATH
+from src.provenance import score_provenance
 
 SCENARIO_LABELS = {
     "scenario_nature_first": "Nature-first restoration opportunity",
@@ -24,6 +31,18 @@ def parse_args() -> argparse.Namespace:
         help="Path to the cluster summary CSV.",
     )
     parser.add_argument(
+        "--clusters-geojson-path",
+        type=Path,
+        default=Path("outputs/candidate_clusters/scenario_balanced_top_100_clusters.geojson"),
+        help="Path to the cluster polygon GeoJSON used for admin-name lookup.",
+    )
+    parser.add_argument(
+        "--scores-path",
+        type=Path,
+        default=CANONICAL_SCORES_PATH,
+        help="Path to the scored layer that produced the cluster summary.",
+    )
+    parser.add_argument(
         "--scenario",
         default="scenario_balanced",
         help="Scenario name for the brief title.",
@@ -39,6 +58,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("data/raw/reference/ons_counties_unitary_2024.geojson"),
         help="Administrative geography layer used to attach county/unitary authority names.",
+    )
+    parser.add_argument(
+        "--release-path",
+        type=Path,
+        default=CANONICAL_RELEASE_METADATA_PATH,
+        help="Optional canonical release checkpoint file referenced in the brief.",
     )
     return parser.parse_args()
 
@@ -94,11 +119,17 @@ def main() -> None:
     args = parse_args()
     summary = pd.read_csv(args.cluster_summary_path)
     scenario_title = scenario_label(args.scenario)
-    if args.admin_path.exists():
+    provenance: dict[str, str] = {}
+    if args.scores_path.exists():
+        import geopandas as gpd
+
+        scores = gpd.read_parquet(args.scores_path)
+        provenance = score_provenance(scores, args.scores_path)
+    if args.admin_path.exists() and args.clusters_geojson_path.exists():
         import geopandas as gpd
 
         admins = gpd.read_file(args.admin_path)
-        clusters = gpd.read_file("outputs/candidate_clusters/scenario_balanced_top_100_clusters.geojson")
+        clusters = gpd.read_file(args.clusters_geojson_path)
         name_col = [c for c in admins.columns if c.lower().endswith("nm")][0]
         admins = admins.to_crs(clusters.crs) if admins.crs != clusters.crs else admins
         centroids = clusters.copy()
@@ -141,6 +172,12 @@ def main() -> None:
         f"- Shortlist scale: top {total} 1 km cells grouped into {len(summary)} candidate zones",
         f"- Dominant pattern: the top 3 zones account for {coverage_pct:.0f}% of the shortlist by cell count",
         f"- Leading named areas: {lead_zone_names}",
+        f"- Source layer: `{args.scores_path}`",
+        (
+            f"- Run profile: `{provenance.get('run_profile', 'not recorded')}`"
+            if provenance
+            else "- Run profile: not recorded"
+        ),
         "",
         "## Leading Zones",
         "",
@@ -180,6 +217,11 @@ def main() -> None:
             "",
             "## Core Files",
             "",
+            (
+                f"- Canonical release checkpoint: `{args.release_path}`"
+                if args.release_path.exists()
+                else "- Canonical release checkpoint: not generated in this run"
+            ),
             "- Shortlist explorer app: `outputs/app/rewilding_opportunity_explorer.html`",
             "- Inspection map: `outputs/maps/scenario_balanced_top_100_map.html`",
             "- Methods note: `outputs/methods.md`",

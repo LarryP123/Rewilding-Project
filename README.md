@@ -21,13 +21,15 @@ The first version prioritises layers that are practical to integrate and defensi
 
 - land cover context,
 - existing priority habitat,
-- an observation-based bird layer built from verified NBN/iRecord records,
+- observation-based bird and mammal layers built from verified NBN/iRecord records,
 - agricultural land quality,
-- flood opportunity, preferably from a dedicated Environment Agency style flood layer,
+- flood opportunity from a dedicated Environment Agency style flood layer,
 - England boundary for the analysis extent plus optional LNRS geography for policy slicing and summaries.
 
-The current biodiversity dimension comes from a first-pass bird observation indicator rather than a full biodiversity model.
-Flood and peat are wired to prefer dedicated source datasets when available, with CORINE retained as an explicit fallback so the pipeline can still run before those raw layers are added locally.
+The biodiversity dimension now combines bird and mammal observation indicators rather than relying on birds alone.
+It is still a pragmatic screening proxy rather than a full biodiversity model, and it remains sensitive to recording effort.
+The canonical published run requires dedicated flood and peat source datasets.
+CORINE is retained only as an explicit local-development fallback so the pipeline can still run before those raw layers are added locally.
 
 ## What This Project Is
 
@@ -40,7 +42,7 @@ Those scores are then packaged into shortlist exports, cluster summaries, valida
 The canonical published workflow in this repository:
 
 - builds or reuses a national 1 km hex grid for England,
-- derives habitat, bird-observation, agricultural, flood, and peat-related features per cell,
+- derives habitat, biodiversity-observation, agricultural, flood, and peat-related features per cell,
 - scores each cell under `scenario_nature_first`, `scenario_balanced`, and `scenario_low_conflict`,
 - exports shortlist and candidate-zone outputs from the same scored layer,
 - and packages those outputs into documentation and a standalone HTML explorer.
@@ -111,10 +113,23 @@ from src.pipeline import build_mvp_outputs
 build_mvp_outputs(out_dir=Path("data/interim/mvp"), cell_diameter_m=20000)
 ```
 
-Production-style run with the official England boundary:
+Canonical published run with the official England boundary and dedicated flood/peat inputs:
 
 ```bash
 python scripts/run_official_boundary_mvp.py --cell-diameter-m 1000
+```
+
+End-to-end canonical publication pass from one scored run:
+
+```bash
+python scripts/publish_canonical_run.py --verbose
+```
+
+If the raw dedicated flood and peat layers are very large, prepare simplified
+scoring-ready versions first:
+
+```bash
+python scripts/prepare_canonical_sources.py
 ```
 
 With dedicated flood and peat layers supplied explicitly:
@@ -122,8 +137,9 @@ With dedicated flood and peat layers supplied explicitly:
 ```bash
 python scripts/run_official_boundary_mvp.py \
   --cell-diameter-m 1000 \
-  --flood-path data/raw/flood/ea_flood_zones.parquet \
-  --peat-path data/raw/peat/england_peat_map.parquet
+  --flood-path data/raw/flood/ea_flood_zones.gpkg \
+  --peat-path data/raw/peat/england_peat_map.gdb \
+  --peat-layer peaty_soil_extent_v1
 ```
 
 The runner now caches the cleaned ALC layer at `data/interim/alc_clean.parquet`
@@ -131,11 +147,11 @@ and reuses existing boundary, CORINE, habitat, grid, and score outputs inside
 the chosen `--out-dir` when present. Use `--no-reuse-existing` if you want to
 force a rebuild.
 
-Export top-ranked candidate hexes from a scored layer:
+Export top-ranked candidate hexes from the canonical scored layer:
 
 ```bash
 python scripts/export_top_candidates.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100
 ```
@@ -144,7 +160,7 @@ Add LNRS names and policy-area summaries when an LNRS boundary layer is availabl
 
 ```bash
 python scripts/export_top_candidates.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100 \
   --lnrs-path data/raw/reference/lnrs_boundaries.geojson
@@ -154,25 +170,40 @@ Generate clustered candidate zones with LNRS slicing carried through to the zone
 
 ```bash
 python scripts/summarize_candidate_clusters.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100 \
   --lnrs-path data/raw/reference/lnrs_boundaries.geojson
 ```
 
-Right now the canonical workflow can use:
+Right now the local-development workflow can use:
 
 - the local `data/interim/corine_subset.parquet` layer for habitat-context features,
-- a cached observation-based bird layer downloaded from NBN Atlas verified iRecord bird records for England,
-- dedicated flood and peat layers when present under `data/raw/flood/` and `data/raw/peat/`, otherwise explicit CORINE fallback proxies,
+- cached observation-based bird and mammal layers downloaded from NBN Atlas verified iRecord records for England,
+- dedicated flood and peat layers under `data/raw/flood/` and `data/raw/peat/`, with explicit CORINE fallback proxies reserved for non-canonical local runs,
 - and a proxy analysis boundary derived from available ALC coverage when no official England boundary is supplied.
 
-The current published "official" result in this repository is the locked
-1 km v4 official-boundary stack rooted at
-`data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet`. Newer local
-reruns and enriched experiments can coexist alongside that baseline, but they
-should not be treated as the canonical published output unless the manifest and
-downstream materials are updated together.
+The current biodiversity workflow is intentionally controlled in scope:
+
+- birds remain the original observation taxon,
+- mammals are the single Phase 2 addition,
+- each taxon is aggregated to the 1 km hex grid as species richness plus record count,
+- each taxon score is damped by a simple record-coverage term before entering scenario scoring,
+- and the scenario layer uses a combined `biodiversity_observation_score_raw` so biodiversity is no longer bird-only.
+
+This does not remove observation bias. It only makes that bias more explicit and a little less fragile:
+
+- richness without enough records is down-weighted,
+- absence of records is treated as low confidence rather than ecological absence,
+- and hotspots may still partly reflect where active recorders spend time.
+
+The current canonical published result is the dedicated-data 1 km stack rooted
+at `data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet`. Local reruns
+that use proxy fallback can coexist for development and smoke testing, but they
+should not be treated as published outputs.
+The corresponding release checkpoint is written to
+`outputs/release/canonical_v5.json`, with `outputs/release/latest.json` updated
+to the same payload after a successful canonical publish pass.
 
 ## Outputs
 
@@ -189,7 +220,7 @@ Build the packaged shortlist explorer:
 
 ```bash
 python scripts/build_map_app.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet
+  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet
 ```
 
 This writes a self-contained HTML app to

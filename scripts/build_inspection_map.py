@@ -4,10 +4,16 @@ import argparse
 import html
 import json
 from pathlib import Path
+import sys
 
 import geopandas as gpd
 import pandas as pd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.canonical import CANONICAL_SCORES_PATH
 
 SCENARIO_LABELS = {
     "scenario_nature_first": "Nature-first restoration opportunity",
@@ -23,7 +29,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the scored hex layer.",
     )
     parser.add_argument(
@@ -423,9 +429,12 @@ def main() -> None:
                 "priority_habitat_share": round(float(row.priority_habitat_share), 2),
                 "connectivity_score": round(float(row.connectivity_score), 2),
                 "restoration_opportunity_score": round(float(row.restoration_opportunity_score), 2),
+                "biodiversity_observation_score_raw": round(float(getattr(row, "biodiversity_observation_score_raw", 0.0)), 2),
                 "bird_observation_score_raw": round(float(getattr(row, "bird_observation_score_raw", 0.0)), 2),
                 "bird_species_richness": round(float(getattr(row, "bird_species_richness", 0.0)), 2),
                 "bird_record_count": round(float(getattr(row, "bird_record_count", 0.0)), 2),
+                "mammal_species_richness": round(float(getattr(row, "mammal_species_richness", 0.0)), 2),
+                "mammal_record_count": round(float(getattr(row, "mammal_record_count", 0.0)), 2),
                 "habitat_mosaic_score": round(float(row.habitat_mosaic_score), 2),
                 "agri_opportunity_score_raw": round(float(row.agri_opportunity_score_raw), 2),
                 "cell_area_ratio": round(float(row.cell_area_ratio), 3),
@@ -771,9 +780,11 @@ def main() -> None:
       <div class="metric"><span>Habitat share (%)</span><span id="habitat">{initial["priority_habitat_share"]:.2f}</span></div>
       <div class="metric"><span>Connectivity</span><span id="connectivity">{initial["connectivity_score"]:.2f}</span></div>
       <div class="metric"><span>Restoration</span><span id="restoration">{initial["restoration_opportunity_score"]:.2f}</span></div>
-      <div class="metric"><span>Bird observation score</span><span id="bird-score">{initial["bird_observation_score_raw"]:.2f}</span></div>
+      <div class="metric"><span>Biodiversity observation score</span><span id="biodiversity-score">{initial["biodiversity_observation_score_raw"]:.2f}</span></div>
       <div class="metric"><span>Bird species richness</span><span id="bird-richness">{initial["bird_species_richness"]:.2f}</span></div>
       <div class="metric"><span>Bird record count</span><span id="bird-records">{initial["bird_record_count"]:.2f}</span></div>
+      <div class="metric"><span>Mammal species richness</span><span id="mammal-richness">{initial["mammal_species_richness"]:.2f}</span></div>
+      <div class="metric"><span>Mammal record count</span><span id="mammal-records">{initial["mammal_record_count"]:.2f}</span></div>
       <div class="metric"><span>Mosaic</span><span id="mosaic">{initial["habitat_mosaic_score"]:.2f}</span></div>
       <div class="metric"><span>ALC opportunity</span><span id="agri">{initial["agri_opportunity_score_raw"]:.2f}</span></div>
       <div class="metric"><span>Cell area ratio</span><span id="area-ratio">{initial["cell_area_ratio"]:.3f}</span></div>
@@ -848,9 +859,11 @@ def main() -> None:
       document.getElementById('habitat').textContent = props.priority_habitat_share.toFixed(2);
       document.getElementById('connectivity').textContent = props.connectivity_score.toFixed(2);
       document.getElementById('restoration').textContent = props.restoration_opportunity_score.toFixed(2);
-      document.getElementById('bird-score').textContent = props.bird_observation_score_raw.toFixed(2);
+      document.getElementById('biodiversity-score').textContent = props.biodiversity_observation_score_raw.toFixed(2);
       document.getElementById('bird-richness').textContent = props.bird_species_richness.toFixed(2);
       document.getElementById('bird-records').textContent = props.bird_record_count.toFixed(2);
+      document.getElementById('mammal-richness').textContent = props.mammal_species_richness.toFixed(2);
+      document.getElementById('mammal-records').textContent = props.mammal_record_count.toFixed(2);
       document.getElementById('mosaic').textContent = props.habitat_mosaic_score.toFixed(2);
       document.getElementById('agri').textContent = props.agri_opportunity_score_raw.toFixed(2);
       document.getElementById('area-ratio').textContent = props.cell_area_ratio.toFixed(3);

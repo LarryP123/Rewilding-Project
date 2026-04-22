@@ -11,7 +11,7 @@ SCENARIO_WEIGHTS = {
         "peat_opportunity_score_raw": 0.15,
         "agri_opportunity_score_raw": 0.10,
         "habitat_mosaic_score": 0.05,
-        "bird_observation_score_raw": 0.20,
+        "biodiversity_observation_score_raw": 0.20,
     },
     "scenario_balanced": {
         "restoration_opportunity_score": 0.30,
@@ -19,7 +19,7 @@ SCENARIO_WEIGHTS = {
         "peat_opportunity_score_raw": 0.15,
         "agri_opportunity_score_raw": 0.15,
         "habitat_mosaic_score": 0.05,
-        "bird_observation_score_raw": 0.15,
+        "biodiversity_observation_score_raw": 0.15,
     },
     "scenario_low_conflict": {
         "restoration_opportunity_score": 0.18,
@@ -27,7 +27,7 @@ SCENARIO_WEIGHTS = {
         "peat_opportunity_score_raw": 0.10,
         "agri_opportunity_score_raw": 0.35,
         "habitat_mosaic_score": 0.07,
-        "bird_observation_score_raw": 0.15,
+        "biodiversity_observation_score_raw": 0.15,
     },
 }
 
@@ -46,6 +46,12 @@ def minmax_scale(series: pd.Series) -> pd.Series:
 
     scaled = (series - min_value) / (max_value - min_value) * 100
     return scaled.astype("Float64")
+
+
+def _series_or_zeros(frame: pd.DataFrame, column: str) -> pd.Series:
+    if column in frame.columns:
+        return frame[column].fillna(0)
+    return pd.Series(0.0, index=frame.index, dtype="Float64")
 
 
 def add_connectivity_score(
@@ -96,6 +102,34 @@ def add_restoration_opportunity_scores(
     return scored
 
 
+def add_observation_scores(
+    frame: pd.DataFrame,
+    richness_column: str = "species_richness",
+    record_count_column: str = "record_count",
+    richness_score_column: str = "species_richness_score",
+    coverage_score_column: str = "record_coverage_score",
+    feature_name: str = "observation_score_raw",
+    target_record_count: int = 20,
+) -> pd.DataFrame:
+    """Build an effort-aware observation score from richness and record coverage."""
+
+    if target_record_count <= 0:
+        raise ValueError("target_record_count must be positive.")
+
+    scored = frame.copy()
+    richness = scored[richness_column].fillna(0).clip(lower=0)
+    record_count = scored[record_count_column].fillna(0).clip(lower=0)
+
+    scored[richness_score_column] = minmax_scale(richness).fillna(0).round(2)
+    coverage = np.log1p(record_count) / np.log1p(target_record_count)
+    scored[coverage_score_column] = (coverage.clip(0, 1) * 100).round(2)
+    scored[feature_name] = (
+        scored[richness_score_column] * (scored[coverage_score_column] / 100)
+    ).round(2)
+
+    return scored
+
+
 def add_bird_observation_scores(
     frame: pd.DataFrame,
     richness_column: str = "bird_species_richness",
@@ -105,20 +139,53 @@ def add_bird_observation_scores(
 ) -> pd.DataFrame:
     """Build an effort-aware bird observation score from richness and record coverage."""
 
-    if target_record_count <= 0:
-        raise ValueError("target_record_count must be positive.")
+    return add_observation_scores(
+        frame,
+        richness_column=richness_column,
+        record_count_column=record_count_column,
+        richness_score_column="bird_species_richness_score",
+        coverage_score_column="bird_record_coverage_score",
+        feature_name=feature_name,
+        target_record_count=target_record_count,
+    )
+
+
+def add_mammal_observation_scores(
+    frame: pd.DataFrame,
+    richness_column: str = "mammal_species_richness",
+    record_count_column: str = "mammal_record_count",
+    feature_name: str = "mammal_observation_score_raw",
+    target_record_count: int = 12,
+) -> pd.DataFrame:
+    """Build an effort-aware mammal observation score from richness and record coverage."""
+
+    return add_observation_scores(
+        frame,
+        richness_column=richness_column,
+        record_count_column=record_count_column,
+        richness_score_column="mammal_species_richness_score",
+        coverage_score_column="mammal_record_coverage_score",
+        feature_name=feature_name,
+        target_record_count=target_record_count,
+    )
+
+
+def add_biodiversity_observation_score(frame: pd.DataFrame) -> pd.DataFrame:
+    """Combine bird and mammal observation signals into a single biodiversity score."""
 
     scored = frame.copy()
-    richness = scored[richness_column].fillna(0).clip(lower=0)
-    record_count = scored[record_count_column].fillna(0).clip(lower=0)
+    bird_score = _series_or_zeros(scored, "bird_observation_score_raw")
+    mammal_score = _series_or_zeros(scored, "mammal_observation_score_raw")
+    bird_coverage = _series_or_zeros(scored, "bird_record_coverage_score")
+    mammal_coverage = _series_or_zeros(scored, "mammal_record_coverage_score")
+    taxa_present = (
+        (_series_or_zeros(scored, "bird_record_count") > 0).astype(int)
+        + (_series_or_zeros(scored, "mammal_record_count") > 0).astype(int)
+    )
 
-    scored["bird_species_richness_score"] = minmax_scale(richness).fillna(0).round(2)
-    coverage = np.log1p(record_count) / np.log1p(target_record_count)
-    scored["bird_record_coverage_score"] = (coverage.clip(0, 1) * 100).round(2)
-    scored[feature_name] = (
-        scored["bird_species_richness_score"] * (scored["bird_record_coverage_score"] / 100)
-    ).round(2)
-
+    scored["biodiversity_taxa_present"] = taxa_present.astype("Int64")
+    scored["biodiversity_record_coverage_score"] = ((bird_coverage + mammal_coverage) / 2).round(2)
+    scored["biodiversity_observation_score_raw"] = (((bird_score + mammal_score) / 2)).round(2)
     return scored
 
 

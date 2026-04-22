@@ -10,7 +10,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import CANONICAL_SCORES_PATH
 from src.geography import attach_geography_name, summarize_named_geography
+from src.provenance import score_provenance
 
 
 def parse_args() -> argparse.Namespace:
@@ -20,7 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the scored hex layer.",
     )
     parser.add_argument(
@@ -63,6 +65,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     gdf = gpd.read_parquet(args.scores_path)
+    provenance = score_provenance(gdf, args.scores_path)
     ranked = gdf.sort_values(args.scenario, ascending=False).head(args.top_n).copy()
     ranked = attach_geography_name(
         ranked,
@@ -91,9 +94,11 @@ def main() -> None:
         "priority_habitat_share",
         "connectivity_score",
         "restoration_opportunity_score",
-        "bird_observation_score_raw",
+        "biodiversity_observation_score_raw",
         "bird_species_richness",
         "bird_record_count",
+        "mammal_species_richness",
+        "mammal_record_count",
         "habitat_mosaic_score",
         "agri_opportunity_score_raw",
     ]
@@ -103,6 +108,9 @@ def main() -> None:
         f"# Top Candidates: {args.scenario}",
         "",
         f"Source layer: `{args.scores_path}`",
+        f"Run profile: `{provenance['run_profile']}`",
+        f"Flood source: `{provenance['flood_feature_source']}` from `{provenance['flood_source_path'] or 'not recorded'}`",
+        f"Peat source: `{provenance['peat_feature_source']}` from `{provenance['peat_source_path'] or 'not recorded'}`",
         f"Rows exported: {len(ranked)}",
         "",
         "## Score summary",

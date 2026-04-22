@@ -8,6 +8,14 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import (
+    CANONICAL_BOUNDARY_PATH,
+    CANONICAL_FLOOD_PATH,
+    CANONICAL_FLOOD_LAYER,
+    CANONICAL_OUT_DIR,
+    CANONICAL_PEAT_PATH,
+    CANONICAL_PEAT_LAYER,
+)
 from src.pipeline import build_mvp_outputs
 
 
@@ -24,37 +32,37 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--out-dir",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km"),
-        help="Output directory for generated layers.",
+        default=CANONICAL_OUT_DIR,
+        help="Output directory for the canonical published layers.",
     )
     parser.add_argument(
         "--boundary-path",
         type=Path,
-        default=Path("data/raw/boundaries/england_boundary_analysis.parquet"),
+        default=CANONICAL_BOUNDARY_PATH,
         help="Path to the official England boundary file.",
     )
     parser.add_argument(
         "--flood-path",
         type=Path,
-        default=None,
-        help="Optional dedicated flood layer path. Otherwise auto-detect under data/raw/flood/.",
+        default=CANONICAL_FLOOD_PATH,
+        help="Dedicated flood layer path for the canonical published run.",
     )
     parser.add_argument(
         "--flood-layer",
         type=str,
-        default=None,
+        default=CANONICAL_FLOOD_LAYER,
         help="Optional layer name for a geopackage-based dedicated flood dataset.",
     )
     parser.add_argument(
         "--peat-path",
         type=Path,
-        default=None,
-        help="Optional dedicated peat layer path. Otherwise auto-detect under data/raw/peat/.",
+        default=CANONICAL_PEAT_PATH,
+        help="Dedicated peat layer path for the canonical published run.",
     )
     parser.add_argument(
         "--peat-layer",
         type=str,
-        default=None,
+        default=CANONICAL_PEAT_LAYER,
         help="Optional layer name for a geopackage-based dedicated peat dataset.",
     )
     parser.add_argument(
@@ -70,6 +78,12 @@ def parse_args() -> argparse.Namespace:
         help="Optional cap for downloaded bird observation records, useful for smoke tests.",
     )
     parser.add_argument(
+        "--mammal-max-records",
+        type=int,
+        default=None,
+        help="Optional cap for downloaded mammal observation records, useful for smoke tests.",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Print progress while building the outputs.",
@@ -78,6 +92,11 @@ def parse_args() -> argparse.Namespace:
         "--no-reuse-existing",
         action="store_true",
         help="Rebuild outputs even if cached intermediates already exist.",
+    )
+    parser.add_argument(
+        "--allow-proxy-fallback",
+        action="store_true",
+        help="Permit CORINE flood/peat fallback for local debugging. The canonical published run should not use this.",
     )
     return parser.parse_args()
 
@@ -94,8 +113,11 @@ def main() -> None:
         cell_diameter_m=args.cell_diameter_m,
         tile_size_m=args.tile_size_m,
         bird_max_records=args.bird_max_records,
+        mammal_max_records=args.mammal_max_records,
         verbose=args.verbose,
         reuse_existing=not args.no_reuse_existing,
+        require_dedicated_flood_peat=not args.allow_proxy_fallback,
+        run_profile="canonical_published" if not args.allow_proxy_fallback else "local_debug_with_fallback",
     )
     for name, path in outputs.items():
         print(f"{name}: {path}")

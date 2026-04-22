@@ -23,6 +23,10 @@ def test_manifest_locks_current_official_result_artifact() -> None:
     assert official["england_boundary_analysis"].path == Path(
         "data/raw/boundaries/england_boundary_analysis.parquet"
     )
+    assert official["flood_raw_dedicated"].path == Path("data/raw/flood/ea_flood_zones.gpkg")
+    assert official["flood_raw_dedicated"].required is True
+    assert official["peat_raw_dedicated"].path == Path("data/raw/peat/england_peat_map.gdb")
+    assert official["peat_raw_dedicated"].required is True
     assert official["official_result_scores"].path == Path(
-        "data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"
+        "data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet"
     )

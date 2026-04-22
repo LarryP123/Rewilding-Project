@@ -2,10 +2,23 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import sys
 
 import geopandas as gpd
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import (
+    CANONICAL_FLOOD_PATH,
+    CANONICAL_PEAT_PATH,
+    CANONICAL_RELEASE_METADATA_PATH,
+    CANONICAL_RELEASE_NAME,
+    CANONICAL_SCORES_PATH,
+    canonical_source_contract,
+)
+from src.provenance import score_provenance
 SCENARIO_LABELS = {
     "scenario_nature_first": "Nature-first restoration opportunity",
     "scenario_balanced": "Balanced restoration opportunity",
@@ -20,7 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the canonical scored hex layer.",
     )
     parser.add_argument(
@@ -53,15 +66,13 @@ def parse_args() -> argparse.Namespace:
         default=Path("outputs/methods.md"),
         help="Destination markdown file.",
     )
+    parser.add_argument(
+        "--release-path",
+        type=Path,
+        default=CANONICAL_RELEASE_METADATA_PATH,
+        help="Optional canonical release checkpoint path referenced in the note.",
+    )
     return parser.parse_args()
-
-
-def first_unique_value(frame: gpd.GeoDataFrame, column: str, fallback: str) -> str:
-    if column not in frame.columns:
-        return fallback
-    values = frame[column].dropna().astype(str).unique().tolist()
-    return values[0] if values else fallback
-
 
 def scenario_block(scores: gpd.GeoDataFrame) -> list[str]:
     lines: list[str] = []
@@ -87,11 +98,12 @@ def maybe_reference(path: Path, label: str) -> str:
 def main() -> None:
     args = parse_args()
     scores = gpd.read_parquet(args.scores_path)
+    provenance = score_provenance(scores, args.scores_path)
+    canonical_contract = canonical_source_contract()
 
     cell_count = len(scores)
-    flood_source = first_unique_value(scores, "flood_feature_source", "not recorded")
-    peat_source = first_unique_value(scores, "peat_feature_source", "not recorded")
-    bird_enabled = "bird_observation_score_raw" in scores.columns
+    biodiversity_enabled = "biodiversity_observation_score_raw" in scores.columns
+    mammal_enabled = "mammal_observation_score_raw" in scores.columns
 
     lines = [
         "# Methods Note",
@@ -104,7 +116,7 @@ def main() -> None:
         "",
         "## What This Run Does",
         "",
-        "The canonical run turns habitat, bird-observation, agricultural, flood, and peat-related signals into three scenario views over the same national hex grid.",
+        "The canonical run turns habitat, observation-based biodiversity, agricultural, flood, and peat-related signals into three scenario views over the same national hex grid.",
         "Those scenario scores are then used to produce shortlist tables, candidate-zone summaries, validation outputs, and a standalone explorer.",
         "",
         "## What This Run Does Not Claim",
@@ -113,22 +125,46 @@ def main() -> None:
         "",
         "## Canonical Run",
         "",
+        f"- Canonical release name: `{CANONICAL_RELEASE_NAME}`",
         f"- Canonical scored layer: `{args.scores_path}`",
         f"- Cells scored: {cell_count:,}",
         "- Study area: England using the official England analysis boundary in British National Grid (`EPSG:27700`)",
         "- Analysis unit: 1 km hexagonal grid cells",
+        f"- Run profile recorded in the score layer: `{provenance['run_profile']}`",
+        (
+            f"- Release checkpoint: `{args.release_path}`"
+            if args.release_path.exists()
+            else "- Release checkpoint: not generated in this run"
+        ),
         "",
         "## Core Inputs In This Run",
         "",
         "- Habitat context from the locally prepared habitat proxy used in the MVP workflow",
-        f"- Flood opportunity source recorded in the score layer: `{flood_source}`",
-        f"- Peat opportunity source recorded in the score layer: `{peat_source}`",
+        f"- Published flood source contract: `{CANONICAL_FLOOD_PATH}`",
+        f"- Published peat source contract: `{CANONICAL_PEAT_PATH}`",
+        f"- Flood opportunity source recorded in the score layer: `{provenance['flood_feature_source']}`",
+        f"- Flood source path recorded in the score layer: `{provenance['flood_source_path'] or 'not recorded'}`",
+        f"- Flood clean artifact recorded in the score layer: `{provenance['flood_clean_path'] or 'not recorded'}`",
+        f"- Peat opportunity source recorded in the score layer: `{provenance['peat_feature_source']}`",
+        f"- Peat source path recorded in the score layer: `{provenance['peat_source_path'] or 'not recorded'}`",
+        f"- Peat clean artifact recorded in the score layer: `{provenance['peat_clean_path'] or 'not recorded'}`",
         "- Agricultural opportunity from Agricultural Land Classification",
         (
-            "- Bird observation opportunity from the observation-based bird indicator carried in this score layer"
-            if bird_enabled
-            else "- Bird observation opportunity was not present as a scored component in this layer"
+            "- Biodiversity opportunity from combined bird and mammal observation indicators carried in this score layer"
+            if biodiversity_enabled
+            else "- Combined biodiversity opportunity was not present as a scored component in this layer"
         ),
+        (
+            "- Mammal observation coverage was included as the controlled Phase 2 biodiversity expansion"
+            if mammal_enabled
+            else "- Mammal observation coverage was not present in this score layer"
+        ),
+        f"- Run metadata sidecar: `{provenance['run_metadata_path']}`",
+        "",
+        "## Canonical Contract",
+        "",
+        f"- Required dedicated flood and peat inputs: `{canonical_contract['requires_dedicated_flood_peat']}`",
+        f"- Fallback policy: {canonical_contract['fallback_policy']}",
         "",
         "## Scoring Logic",
         "",
@@ -160,8 +196,9 @@ def main() -> None:
             "",
             "- Opportunity scores should not be read as proof of ecological outcomes.",
             "- Agricultural opportunity remains a simplified tradeoff proxy rather than a full delivery-feasibility model.",
-            "- Flood and peat behavior depends on the active source data recorded in the run.",
-            "- Observation-based biodiversity signals remain effort-sensitive and incomplete.",
+            "- Flood and peat behavior depends on the active source data recorded in the run, and published outputs should only be treated as canonical when that run records dedicated sources.",
+            "- Observation-based biodiversity signals remain effort-sensitive and incomplete, even after simple record-coverage controls.",
+            "- Mammal records broaden the biodiversity dimension beyond birds, but both taxa remain shaped by recorder behavior and reporting intensity.",
             "- High-ranking cells should be treated as candidate areas for follow-up, not final recommendations.",
             "",
         ]

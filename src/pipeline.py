@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
+import pyogrio
 
+from src.canonical import (
+    CANONICAL_FLOOD_PATH,
+    CANONICAL_PEAT_PATH,
+    CANONICAL_RUN_METADATA_PATH,
+    canonical_source_contract,
+)
 from src.build_grid import build_hex_grid
 from src.features import (
     add_alc_opportunity_feature,
+    add_mammal_observation_feature,
     add_bird_observation_feature,
     add_distance_to_habitat_feature,
     add_flood_opportunity_feature,
@@ -19,22 +29,27 @@ from src.features import (
 from src.ingest import (
     DataAsset,
     download_nbn_bird_observations,
+    download_nbn_mammal_observations,
     england_bbox_bng,
     england_bbox_corine,
     ensure_bng,
     repair_geometries,
     write_geoparquet,
+    write_json,
 )
 from src.score import (
+    add_biodiversity_observation_score,
     add_bird_observation_scores,
     add_boundary_penalty,
     add_connectivity_score,
+    add_mammal_observation_scores,
     add_restoration_opportunity_scores,
     apply_scenarios,
 )
 
 ALC_CACHE_PATH = Path("data/interim/alc_clean.parquet")
 BIRD_OBSERVATION_CACHE_PATH = Path("data/interim/bird_observations_irecord_verified_2015plus_england.parquet")
+MAMMAL_OBSERVATION_CACHE_PATH = Path("data/interim/mammal_observations_irecord_verified_2015plus_england.parquet")
 DEFAULT_FLOOD_PATH_CANDIDATES = (
     Path("data/raw/flood/ea_flood_zones.parquet"),
     Path("data/raw/flood/ea_flood_zones.gpkg"),
@@ -45,6 +60,7 @@ DEFAULT_PEAT_PATH_CANDIDATES = (
     Path("data/raw/peat/england_peat_map.gpkg"),
     Path("data/raw/peat/england_peat_map.shp"),
 )
+RUN_METADATA_FILENAME = "run_metadata.json"
 
 
 def _load_corine_subset(asset: DataAsset) -> gpd.GeoDataFrame:
@@ -101,13 +117,27 @@ def _load_clean_vector_asset(
     if asset.path.suffix == ".parquet":
         source = gpd.read_parquet(asset.path)
     else:
-        source = gpd.read_file(asset.path, layer=asset.layer)
+        previous_organize = os.environ.get("OGR_ORGANIZE_POLYGONS")
+        os.environ["OGR_ORGANIZE_POLYGONS"] = "SKIP"
+        try:
+            source = pyogrio.read_dataframe(asset.path, layer=asset.layer, use_arrow=True)
+        finally:
+            if previous_organize is None:
+                os.environ.pop("OGR_ORGANIZE_POLYGONS", None)
+            else:
+                os.environ["OGR_ORGANIZE_POLYGONS"] = previous_organize
 
     cleaned = repair_geometries(
         ensure_bng(source),
         allowed_geom_types=("Polygon", "MultiPolygon"),
     )
     cleaned.columns = cleaned.columns.str.lower()
+    cleaned["source_dataset_name"] = asset.name
+    cleaned["source_dataset_path"] = str(asset.path)
+    cleaned["source_dataset_layer"] = asset.layer or ""
+    cleaned["source_dataset_description"] = asset.description
+    cleaned["source_dataset_original_crs"] = str(source.crs) if source.crs is not None else ""
+    cleaned["source_geometry_handling"] = "ensure_bng|repair_geometries|polygon_filter"
     write_geoparquet(cleaned, cache_path)
     return cleaned
 
@@ -115,6 +145,59 @@ def _load_clean_vector_asset(
 def _asset_cache_path(prefix: str, asset: DataAsset) -> Path:
     suffix = asset.path.stem.lower().replace(" ", "_")
     return Path("data/interim") / f"{prefix}_{suffix}_clean.parquet"
+
+
+def _resolve_named_asset(
+    *,
+    kind: str,
+    explicit_path: Path | None,
+    explicit_layer: str | None,
+    canonical_path: Path,
+    candidates: tuple[Path, ...],
+    description: str,
+    require_dedicated: bool,
+) -> DataAsset | None:
+    path = _existing_path(explicit_path, candidates)
+    if path is None and require_dedicated:
+        raise FileNotFoundError(
+            f"Canonical run requires dedicated {kind} data at {canonical_path}. "
+            "Use the local-development pipeline or pass the dedicated path explicitly."
+        )
+    if path is None:
+        return None
+    return DataAsset(
+        name=kind,
+        path=path,
+        layer=explicit_layer,
+        description=description,
+    )
+
+
+def _source_record(
+    *,
+    label: str,
+    source_name: str,
+    asset: DataAsset | None,
+    clean_path: Path | None,
+) -> dict[str, str]:
+    return {
+        "label": label,
+        "source_name": source_name,
+        "path": str(asset.path) if asset is not None else "",
+        "layer": (asset.layer or "") if asset is not None else "",
+        "description": asset.description if asset is not None else "CORINE fallback proxy",
+        "clean_path": str(clean_path) if clean_path is not None else "",
+    }
+
+
+def _run_metadata_path(out_dir: Path) -> Path:
+    if out_dir == CANONICAL_RUN_METADATA_PATH.parent:
+        return CANONICAL_RUN_METADATA_PATH
+    return out_dir / RUN_METADATA_FILENAME
+
+
+def _write_run_metadata(out_dir: Path, payload: dict[str, Any]) -> Path:
+    return write_json(payload, _run_metadata_path(out_dir))
 
 
 def _boundary_proxy(alc: gpd.GeoDataFrame, buffer_m: float = 2000) -> gpd.GeoDataFrame:
@@ -148,8 +231,11 @@ def build_mvp_outputs(
     cell_diameter_m: float = 1000,
     tile_size_m: float = 50_000,
     bird_max_records: int | None = None,
+    mammal_max_records: int | None = None,
     verbose: bool = False,
     reuse_existing: bool = True,
+    require_dedicated_flood_peat: bool = False,
+    run_profile: str = "local_development",
 ) -> dict[str, Path]:
     """Build a first-pass scored grid using the currently available layers."""
 
@@ -166,35 +252,33 @@ def build_mvp_outputs(
         layer="U2018_CLC2018_V2020_20u1",
         description="CORINE land cover",
     )
-    flood_asset_path = _existing_path(flood_path, DEFAULT_FLOOD_PATH_CANDIDATES)
-    peat_asset_path = _existing_path(peat_path, DEFAULT_PEAT_PATH_CANDIDATES)
-    flood_asset = (
-        DataAsset(
-            name="flood",
-            path=flood_asset_path,
-            layer=flood_layer,
-            description="Dedicated flood opportunity layer, preferably EA flood zones or equivalent.",
-        )
-        if flood_asset_path is not None
-        else None
+    flood_asset = _resolve_named_asset(
+        kind="flood",
+        explicit_path=flood_path,
+        explicit_layer=flood_layer,
+        canonical_path=CANONICAL_FLOOD_PATH,
+        candidates=DEFAULT_FLOOD_PATH_CANDIDATES,
+        description="Dedicated flood opportunity layer used for the canonical published run.",
+        require_dedicated=require_dedicated_flood_peat,
     )
-    peat_asset = (
-        DataAsset(
-            name="peat",
-            path=peat_asset_path,
-            layer=peat_layer,
-            description="Dedicated peat opportunity layer, preferably England Peat Map or equivalent.",
-        )
-        if peat_asset_path is not None
-        else None
+    peat_asset = _resolve_named_asset(
+        kind="peat",
+        explicit_path=peat_path,
+        explicit_layer=peat_layer,
+        canonical_path=CANONICAL_PEAT_PATH,
+        candidates=DEFAULT_PEAT_PATH_CANDIDATES,
+        description="Dedicated peat opportunity layer used for the canonical published run.",
+        require_dedicated=require_dedicated_flood_peat,
     )
 
     boundary_out = out_dir / "analysis_boundary.parquet"
     corine_out = out_dir / "corine_england_subset.parquet"
     habitat_out = out_dir / "habitat_proxy.parquet"
     bird_observation_out = out_dir / "bird_observations.parquet"
+    mammal_observation_out = out_dir / "mammal_observations.parquet"
     grid_out = out_dir / "hex_grid.parquet"
     scores_out = out_dir / "hex_scores.parquet"
+    run_metadata_out = _run_metadata_path(out_dir)
     grid_tiles_dir = out_dir / "grid_tiles"
     habitat_share_dir = out_dir / "feature_chunks" / "habitat_share"
     habitat_distance_dir = out_dir / "feature_chunks" / "distance"
@@ -202,6 +286,7 @@ def build_mvp_outputs(
     flood_feature_dir = out_dir / "feature_chunks" / "flood"
     peat_feature_dir = out_dir / "feature_chunks" / "peat"
     bird_feature_dir = out_dir / "feature_chunks" / "bird_observations"
+    mammal_feature_dir = out_dir / "feature_chunks" / "mammal_observations"
 
     if reuse_existing and scores_out.exists():
         if verbose:
@@ -211,8 +296,10 @@ def build_mvp_outputs(
             "corine_subset": corine_out,
             "habitat_proxy": habitat_out,
             "bird_observations": bird_observation_out,
+            "mammal_observations": mammal_observation_out,
             "grid": grid_out,
             "scores": scores_out,
+            "run_metadata": run_metadata_out,
         }
 
     if verbose:
@@ -233,13 +320,16 @@ def build_mvp_outputs(
     peat_source_name = "corine_proxy"
     flood_source = corine
     peat_source = corine
+    flood_clean_path: Path | None = None
+    peat_clean_path: Path | None = None
 
     if flood_asset is not None:
         if verbose:
             print("[pipeline] loading dedicated flood layer", flush=True)
+        flood_clean_path = _asset_cache_path("flood", flood_asset)
         flood_source = _load_clean_vector_asset(
             flood_asset,
-            cache_path=_asset_cache_path("flood", flood_asset),
+            cache_path=flood_clean_path,
             verbose=verbose,
         )
         flood_source_name = "dedicated_dataset"
@@ -247,9 +337,10 @@ def build_mvp_outputs(
     if peat_asset is not None:
         if verbose:
             print("[pipeline] loading dedicated peat layer", flush=True)
+        peat_clean_path = _asset_cache_path("peat", peat_asset)
         peat_source = _load_clean_vector_asset(
             peat_asset,
-            cache_path=_asset_cache_path("peat", peat_asset),
+            cache_path=peat_clean_path,
             verbose=verbose,
         )
         peat_source_name = "dedicated_dataset"
@@ -271,6 +362,18 @@ def build_mvp_outputs(
             verbose=verbose,
         )
         write_geoparquet(bird_observations, bird_observation_out)
+
+    if reuse_existing and mammal_observation_out.exists():
+        mammal_observations = gpd.read_parquet(mammal_observation_out)
+    else:
+        if verbose:
+            print("[pipeline] loading mammal observations", flush=True)
+        mammal_observations = download_nbn_mammal_observations(
+            MAMMAL_OBSERVATION_CACHE_PATH,
+            max_records=mammal_max_records,
+            verbose=verbose,
+        )
+        write_geoparquet(mammal_observations, mammal_observation_out)
 
     if reuse_existing and boundary_out.exists():
         boundary = gpd.read_parquet(boundary_out)
@@ -362,6 +465,15 @@ def build_mvp_outputs(
         verbose=verbose,
         checkpoint_dir=bird_feature_dir,
     )
+    if verbose:
+        print("[pipeline] mammal observation feature", flush=True)
+    mammal_feature = add_mammal_observation_feature(
+        grid,
+        mammal_observations,
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=mammal_feature_dir,
+    )
 
     features = combine_feature_table(
         grid,
@@ -371,6 +483,7 @@ def build_mvp_outputs(
         flood_feature,
         peat_feature,
         bird_feature,
+        mammal_feature,
     )
     expected_full_hex_area_m2 = 3 * (3**0.5) / 2 * ((cell_diameter_m / 2) ** 2)
     features["cell_area_ratio"] = (
@@ -380,9 +493,18 @@ def build_mvp_outputs(
     features = add_restoration_opportunity_scores(features)
     features = add_boundary_penalty(features)
     features["priority_habitat_share"] = features["priority_habitat_share"].fillna(0) * 100
+    features["run_profile"] = run_profile
     features["flood_feature_source"] = flood_source_name
+    features["flood_source_path"] = str(flood_asset.path) if flood_asset is not None else ""
+    features["flood_source_layer"] = flood_asset.layer or "" if flood_asset is not None else ""
+    features["flood_clean_path"] = str(flood_clean_path) if flood_clean_path is not None else ""
     features["peat_feature_source"] = peat_source_name
+    features["peat_source_path"] = str(peat_asset.path) if peat_asset is not None else ""
+    features["peat_source_layer"] = peat_asset.layer or "" if peat_asset is not None else ""
+    features["peat_clean_path"] = str(peat_clean_path) if peat_clean_path is not None else ""
     features = add_bird_observation_scores(features)
+    features = add_mammal_observation_scores(features)
+    features = add_biodiversity_observation_score(features)
 
     scored = apply_scenarios(features)
 
@@ -390,13 +512,38 @@ def build_mvp_outputs(
         gpd.GeoDataFrame(scored, geometry="geometry", crs=grid.crs),
         scores_out,
     )
+    run_metadata = {
+        "run_profile": run_profile,
+        "out_dir": str(out_dir),
+        "scores_path": str(scores_out),
+        "boundary_path": str(boundary_path) if boundary_path is not None else "",
+        "require_dedicated_flood_peat": require_dedicated_flood_peat,
+        "canonical_contract": canonical_source_contract(),
+        "active_sources": {
+            "flood": _source_record(
+                label="flood",
+                source_name=flood_source_name,
+                asset=flood_asset,
+                clean_path=flood_clean_path,
+            ),
+            "peat": _source_record(
+                label="peat",
+                source_name=peat_source_name,
+                asset=peat_asset,
+                clean_path=peat_clean_path,
+            ),
+        },
+    }
+    _write_run_metadata(out_dir, run_metadata)
 
     outputs = {
         "boundary": boundary_out,
         "corine_subset": corine_out,
         "habitat_proxy": habitat_out,
         "bird_observations": bird_observation_out,
+        "mammal_observations": mammal_observation_out,
         "grid": grid_out,
         "scores": scores_out,
+        "run_metadata": run_metadata_out,
     }
     return outputs

@@ -1,0 +1,47 @@
+{
+  "release_name": "canonical_v5",
+  "version": "v5",
+  "generated_at_utc": "2026-04-22T07:40:02.597672+00:00",
+  "scores_path": "data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet",
+  "run_metadata_path": "data/interim/mvp_official_boundary_1km_v5/run_metadata.json",
+  "source_contract": {
+    "version": "v5",
+    "release_name": "canonical_v5",
+    "profile": "canonical_published",
+    "boundary_path": "data/raw/boundaries/england_boundary_analysis.parquet",
+    "flood_path": "data/raw/flood/ea_flood_zones.gpkg",
+    "flood_layer": "Flood_Zones_2_3_Rivers_and_Sea",
+    "peat_path": "data/raw/peat/england_peat_map.gdb",
+    "peat_layer": "peaty_soil_extent_v1",
+    "prepared_flood_path": "data/interim/canonical_sources/ea_flood_zones_simplified.parquet",
+    "prepared_flood_layer": "",
+    "prepared_peat_path": "data/interim/canonical_sources/england_peat_map_simplified.parquet",
+    "prepared_peat_layer": "",
+    "scores_path": "data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet",
+    "requires_dedicated_flood_peat": true,
+    "fallback_policy": "Development runs may fall back to CORINE proxies, but the canonical published run may not."
+  },
+  "git_head": "5d6710ae415168f87c8d6dedefd146bd600c610d",
+  "provenance": {
+    "run_profile": "canonical_published",
+    "flood_feature_source": "dedicated_dataset",
+    "flood_source_path": "data/interim/canonical_sources/ea_flood_zones_simplified.parquet",
+    "flood_clean_path": "data/interim/flood_ea_flood_zones_simplified_clean.parquet",
+    "peat_feature_source": "dedicated_dataset",
+    "peat_source_path": "data/interim/canonical_sources/england_peat_map_simplified.parquet",
+    "peat_clean_path": "data/interim/peat_england_peat_map_simplified_clean.parquet",
+    "run_metadata_path": "data/interim/mvp_official_boundary_1km_v5/run_metadata.json"
+  },
+  "generated_outputs": {
+    "top_candidates_csv": "outputs/top_candidates_1km/scenario_balanced_top_100.csv",
+    "top_candidates_summary": "outputs/top_candidates_1km/scenario_balanced_top_100_summary.md",
+    "cluster_csv": "outputs/candidate_clusters/scenario_balanced_top_100_clusters.csv",
+    "cluster_geojson": "outputs/candidate_clusters/scenario_balanced_top_100_clusters.geojson",
+    "cluster_summary": "outputs/candidate_clusters/scenario_balanced_top_100_clusters_summary.md",
+    "candidate_brief": "outputs/candidate_brief.md",
+    "methods_note": "outputs/methods.md",
+    "validation_summary": "outputs/validation/validation_summary.md",
+    "inspection_map": "outputs/maps/scenario_balanced_top_100_map.html",
+    "map_app": "outputs/app/rewilding_opportunity_explorer.html"
+  }
+}

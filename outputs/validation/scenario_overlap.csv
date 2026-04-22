@@ -1,4 +1,4 @@
 scenario_a,scenario_b,top_n,shared_cells,jaccard_overlap
-scenario_nature_first,scenario_balanced,100,57,0.399
-scenario_nature_first,scenario_low_conflict,100,55,0.379
-scenario_balanced,scenario_low_conflict,100,93,0.869
+scenario_nature_first,scenario_balanced,100,94,0.887
+scenario_nature_first,scenario_low_conflict,100,74,0.587
+scenario_balanced,scenario_low_conflict,100,72,0.562

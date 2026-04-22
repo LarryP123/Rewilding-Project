@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import geopandas as gpd
 import pytest
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 from src.features import (
     add_distance_to_habitat_feature,
     add_flood_opportunity_feature,
     add_habitat_share_feature,
+    add_mammal_observation_feature,
+    add_observation_feature,
     add_peat_opportunity_feature,
     add_weighted_area_feature,
 )
@@ -95,6 +97,48 @@ def test_add_weighted_area_feature_respects_polygon_weights(grid: gpd.GeoDataFra
 
     assert actual["hex_a"] == pytest.approx(1.0)
     assert actual["hex_b"] == pytest.approx(0.5)
+
+
+def test_add_observation_feature_aggregates_richness_and_record_count(grid: gpd.GeoDataFrame) -> None:
+    observations = gpd.GeoDataFrame(
+        {
+            "species_guid": ["sp1", "sp1", "sp2", "sp3"],
+            "geometry": [
+                Point(1, 1),
+                Point(2, 2),
+                Point(4, 4),
+                Point(24, 4),
+            ],
+        },
+        crs=grid.crs,
+    )
+
+    result = add_observation_feature(grid, observations, tile_size_m=1_000).set_index("hex_id")
+
+    assert result.loc["hex_a", "species_richness"] == pytest.approx(2.0)
+    assert result.loc["hex_a", "record_count"] == pytest.approx(3.0)
+    assert result.loc["hex_b", "species_richness"] == pytest.approx(1.0)
+    assert result.loc["hex_b", "record_count"] == pytest.approx(1.0)
+
+
+def test_add_mammal_observation_feature_uses_mammal_column_names(grid: gpd.GeoDataFrame) -> None:
+    observations = gpd.GeoDataFrame(
+        {
+            "species_guid": ["bat", "fox"],
+            "geometry": [
+                Point(1, 1),
+                Point(24, 4),
+            ],
+        },
+        crs=grid.crs,
+    )
+
+    result = add_mammal_observation_feature(grid, observations, tile_size_m=1_000).set_index("hex_id")
+
+    assert result.loc["hex_a", "mammal_species_richness"] == pytest.approx(1.0)
+    assert result.loc["hex_a", "mammal_record_count"] == pytest.approx(1.0)
+    assert result.loc["hex_b", "mammal_species_richness"] == pytest.approx(1.0)
+    assert result.loc["hex_b", "mammal_record_count"] == pytest.approx(1.0)
 
 
 def test_add_flood_opportunity_feature_prefers_dedicated_dataset_weights(grid: gpd.GeoDataFrame) -> None:

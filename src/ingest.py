@@ -48,11 +48,32 @@ def write_geoparquet(gdf: gpd.GeoDataFrame, out_path: Path) -> Path:
     return out_path
 
 
+def write_json(payload: dict[str, object], out_path: Path) -> Path:
+    """Persist a JSON sidecar with stable formatting."""
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return out_path
+
+
 def repair_geometries(
     gdf: gpd.GeoDataFrame,
     allowed_geom_types: tuple[str, ...] | None = None,
 ) -> gpd.GeoDataFrame:
     """Repair invalid geometries and drop empty outputs."""
+
+    non_empty = gdf.loc[
+        gdf.geometry.apply(lambda geom: geom is not None and not geom.is_empty)
+    ].copy()
+    non_empty = gpd.GeoDataFrame(non_empty, geometry=gdf.geometry.name, crs=gdf.crs)
+
+    if not non_empty.empty and non_empty.geometry.is_valid.all():
+        if allowed_geom_types is None:
+            return non_empty
+        valid_types = non_empty.geometry.geom_type.isin(allowed_geom_types)
+        if valid_types.all():
+            return non_empty
+        return non_empty.loc[valid_types].copy()
 
     repaired = gdf.copy()
 
@@ -120,9 +141,11 @@ def _curl_json(base_url: str, params: list[tuple[str, object]]) -> dict:
     return json.loads(completed.stdout)
 
 
-def download_nbn_bird_observations(
+def download_nbn_observations(
     cache_path: Path,
     *,
+    taxon_label: str,
+    taxon_filters: list[str],
     data_resource_uid: str = "dr3717",
     state_province: str = "England",
     year_from: int = 2015,
@@ -131,7 +154,7 @@ def download_nbn_bird_observations(
     max_records: int | None = None,
     verbose: bool = False,
 ) -> gpd.GeoDataFrame:
-    """Download and cache observation-based bird records from NBN Atlas."""
+    """Download and cache observation-based records from NBN Atlas."""
 
     if cache_path.exists():
         return gpd.read_parquet(cache_path)
@@ -143,7 +166,7 @@ def download_nbn_bird_observations(
 
     base_url = "https://records-ws.nbnatlas.org/occurrences/search"
     fq_params = [
-        "class:Aves",
+        *taxon_filters,
         f"data_resource_uid:{data_resource_uid}",
         f"stateProvince:{state_province}",
         f"year:[{year_from} TO *]",
@@ -174,6 +197,7 @@ def download_nbn_bird_observations(
                 {
                     "species_guid": species_guid,
                     "species_name": occurrence.get("species"),
+                    "taxon_label": taxon_label,
                     "year": occurrence.get("year"),
                     "coordinate_uncertainty_m": occurrence.get("coordinateUncertaintyInMeters"),
                     "data_resource_uid": occurrence.get("dataResourceUid"),
@@ -186,7 +210,7 @@ def download_nbn_bird_observations(
 
     _append_rows(first_payload)
     if verbose:
-        print(f"[bird_observations] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
+        print(f"[{taxon_label}] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
 
     start_index = initial_page_size
     while start_index < total_records:
@@ -203,7 +227,7 @@ def download_nbn_bird_observations(
         _append_rows(payload)
         start_index += fetch_size
         if verbose:
-            print(f"[bird_observations] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
+            print(f"[{taxon_label}] fetched {min(len(rows), total_records)} / {total_records}", flush=True)
 
     frame = pd.DataFrame(rows)
     if frame.empty:
@@ -214,3 +238,57 @@ def download_nbn_bird_observations(
 
     write_geoparquet(result, cache_path)
     return result
+
+
+def download_nbn_bird_observations(
+    cache_path: Path,
+    *,
+    data_resource_uid: str = "dr3717",
+    state_province: str = "England",
+    year_from: int = 2015,
+    max_coordinate_uncertainty_m: float = 2000,
+    page_size: int = 1000,
+    max_records: int | None = None,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Download and cache observation-based bird records from NBN Atlas."""
+
+    return download_nbn_observations(
+        cache_path,
+        taxon_label="bird_observations",
+        taxon_filters=["class:Aves"],
+        data_resource_uid=data_resource_uid,
+        state_province=state_province,
+        year_from=year_from,
+        max_coordinate_uncertainty_m=max_coordinate_uncertainty_m,
+        page_size=page_size,
+        max_records=max_records,
+        verbose=verbose,
+    )
+
+
+def download_nbn_mammal_observations(
+    cache_path: Path,
+    *,
+    data_resource_uid: str = "dr3717",
+    state_province: str = "England",
+    year_from: int = 2015,
+    max_coordinate_uncertainty_m: float = 2000,
+    page_size: int = 1000,
+    max_records: int | None = None,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Download and cache observation-based mammal records from NBN Atlas."""
+
+    return download_nbn_observations(
+        cache_path,
+        taxon_label="mammal_observations",
+        taxon_filters=["class:Mammalia"],
+        data_resource_uid=data_resource_uid,
+        state_province=state_province,
+        year_from=year_from,
+        max_coordinate_uncertainty_m=max_coordinate_uncertainty_m,
+        page_size=page_size,
+        max_records=max_records,
+        verbose=verbose,
+    )

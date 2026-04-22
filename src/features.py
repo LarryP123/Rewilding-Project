@@ -563,18 +563,19 @@ def add_peat_opportunity_feature(
     return peat
 
 
-def add_bird_observation_feature(
+def add_observation_feature(
     grid: gpd.GeoDataFrame,
     observations: gpd.GeoDataFrame,
     *,
     species_column: str = "species_guid",
-    richness_feature_name: str = "bird_species_richness",
-    record_count_feature_name: str = "bird_record_count",
+    richness_feature_name: str = "species_richness",
+    record_count_feature_name: str = "record_count",
+    checkpoint_prefix: str = "observations",
     tile_size_m: float = 50_000,
     verbose: bool = False,
     checkpoint_dir: Path | None = None,
 ) -> gpd.GeoDataFrame:
-    """Aggregate bird observations into per-hex richness and record counts."""
+    """Aggregate species observations into per-hex richness and record counts."""
 
     base_grid = grid.copy()
     working_grid = grid.to_crs(observations.crs) if grid.crs != observations.crs else grid.copy()
@@ -589,11 +590,11 @@ def add_bird_observation_feature(
     chunks: list[pd.DataFrame] = []
     for index, chunk in iter_grid_chunks(working_grid[["hex_id", "geometry"]], tile_size_m=tile_size_m):
         if checkpoint_dir is not None:
-            checkpoint = _checkpoint_file(checkpoint_dir, "bird_observations", index)
+            checkpoint = _checkpoint_file(checkpoint_dir, checkpoint_prefix, index)
             if checkpoint.exists():
                 chunks.append(pd.read_parquet(checkpoint))
                 if verbose:
-                    print(f"[bird_observations] chunk {index}: reuse", flush=True)
+                    print(f"[{checkpoint_prefix}] chunk {index}: reuse", flush=True)
                 continue
 
         chunk = chunk.copy()
@@ -640,12 +641,64 @@ def add_bird_observation_feature(
             result.to_parquet(checkpoint)
         chunks.append(result)
         if verbose:
-            print(f"[bird_observations] chunk {index}: {len(chunk)} cells", flush=True)
+            print(f"[{checkpoint_prefix}] chunk {index}: {len(chunk)} cells", flush=True)
 
     result = base_grid.merge(pd.concat(chunks, ignore_index=True), on="hex_id", how="left")
     result[richness_feature_name] = result[richness_feature_name].fillna(0.0)
     result[record_count_feature_name] = result[record_count_feature_name].fillna(0.0)
     return result
+
+
+def add_bird_observation_feature(
+    grid: gpd.GeoDataFrame,
+    observations: gpd.GeoDataFrame,
+    *,
+    species_column: str = "species_guid",
+    richness_feature_name: str = "bird_species_richness",
+    record_count_feature_name: str = "bird_record_count",
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+    checkpoint_dir: Path | None = None,
+) -> gpd.GeoDataFrame:
+    """Aggregate bird observations into per-hex richness and record counts."""
+
+    return add_observation_feature(
+        grid,
+        observations,
+        species_column=species_column,
+        richness_feature_name=richness_feature_name,
+        record_count_feature_name=record_count_feature_name,
+        checkpoint_prefix="bird_observations",
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=checkpoint_dir,
+    )
+
+
+def add_mammal_observation_feature(
+    grid: gpd.GeoDataFrame,
+    observations: gpd.GeoDataFrame,
+    *,
+    species_column: str = "species_guid",
+    richness_feature_name: str = "mammal_species_richness",
+    record_count_feature_name: str = "mammal_record_count",
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+    checkpoint_dir: Path | None = None,
+) -> gpd.GeoDataFrame:
+    """Aggregate mammal observations into per-hex richness and record counts."""
+
+    return add_observation_feature(
+        grid,
+        observations,
+        species_column=species_column,
+        richness_feature_name=richness_feature_name,
+        record_count_feature_name=record_count_feature_name,
+        checkpoint_prefix="mammal_observations",
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+        checkpoint_dir=checkpoint_dir,
+    )
 
 
 def add_alc_opportunity_feature(

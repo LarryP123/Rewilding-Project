@@ -13,7 +13,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import CANONICAL_RELEASE_NAME, CANONICAL_SCORES_PATH
 from src.geography import attach_geography_name
+from src.provenance import score_provenance
 from src.score import SCENARIO_WEIGHTS
 
 
@@ -36,7 +38,7 @@ COMPONENT_LABELS = {
     "peat_opportunity_score_raw": "Peat opportunity",
     "agri_opportunity_score_raw": "Agricultural opportunity",
     "habitat_mosaic_score": "Habitat mosaic",
-    "bird_observation_score_raw": "Bird observation score",
+    "biodiversity_observation_score_raw": "Biodiversity observation score",
 }
 
 SUPPLEMENTAL_METRICS = [
@@ -56,7 +58,7 @@ PARAMETER_NOTES = {
     "peat_opportunity_score_raw": "A screening signal for peatland restoration context. Higher values suggest stronger peat-related restoration opportunity.",
     "agri_opportunity_score_raw": "A land-use tradeoff signal derived from agricultural land quality. Higher values mean the cell looks less constrained by top-grade farmland.",
     "habitat_mosaic_score": "Rewards mixed habitat contexts rather than either empty cells or cells already fully occupied by priority habitat.",
-    "bird_observation_score_raw": "Where present, this observation-based biodiversity indicator reflects recorded bird richness adjusted for record coverage rather than a full biodiversity model.",
+    "biodiversity_observation_score_raw": "This observation-based biodiversity indicator combines bird and mammal richness signals, each damped by simple record-coverage controls so sparse recording does not look stronger than it is.",
     "priority_habitat_share": "Percent of the cell already covered by priority habitat. Useful for understanding whether a candidate is intact habitat, a mosaic, or an adjacency opportunity.",
     "distance_to_priority_habitat_m": "Representative-point distance to the nearest priority habitat patch in meters.",
     "cell_area_ratio": "How much of a full hex remains after clipping at the analysis boundary. Lower values indicate edge fragments.",
@@ -71,7 +73,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the scored national hex layer.",
     )
     parser.add_argument(
@@ -320,6 +322,7 @@ def build_html(
     top_n_per_scenario: int,
     top_n_per_component: int,
     component_columns: list[str],
+    provenance: dict[str, str],
 ) -> str:
     initial_hex = features[0]["hex_id"]
     feature_lookup = {feature["hex_id"]: feature for feature in features}
@@ -1044,6 +1047,7 @@ def build_html(
         </div>
         <div class="summary-grid">
           <div class="summary-chip"><span>Packaged shortlist</span><strong id="summary-count">{len(features)} cells</strong></div>
+          <div class="summary-chip"><span>Canonical build</span><strong>{html.escape(CANONICAL_RELEASE_NAME)}</strong></div>
           <div class="summary-chip"><span>Preset lenses</span><strong>{len(SCENARIO_WEIGHTS)} starting points</strong></div>
           <div class="summary-chip"><span>Weighted components</span><strong>{len(component_columns)} live sliders</strong></div>
           <div class="summary-chip"><span>Selection</span><strong id="summary-selection">{initial_hex}</strong></div>
@@ -1154,12 +1158,15 @@ def build_html(
         <div class="why-text" id="why-text"></div>
         <div class="methods-note">
           <strong style="display:block;color:var(--ink);margin-bottom:6px;">Signal guide</strong>
+          <div><strong>Run profile:</strong> {html.escape(provenance.get("run_profile", "not recorded"))}</div>
+          <div><strong>Flood source:</strong> {html.escape(provenance.get("flood_feature_source", "not recorded"))}</div>
+          <div><strong>Peat source:</strong> {html.escape(provenance.get("peat_feature_source", "not recorded"))}</div>
           <div><strong>Restoration opportunity:</strong> {html.escape(PARAMETER_NOTES["restoration_opportunity_score"])}</div>
           <div><strong>Flood opportunity:</strong> {html.escape(PARAMETER_NOTES["flood_opportunity_score_raw"])}</div>
           <div><strong>Peat opportunity:</strong> {html.escape(PARAMETER_NOTES["peat_opportunity_score_raw"])}</div>
           <div><strong>Agricultural opportunity:</strong> {html.escape(PARAMETER_NOTES["agri_opportunity_score_raw"])}</div>
           <div><strong>Habitat mosaic:</strong> {html.escape(PARAMETER_NOTES["habitat_mosaic_score"])}</div>
-          <div><strong>Bird observation score:</strong> {html.escape(PARAMETER_NOTES["bird_observation_score_raw"])}</div>
+          <div><strong>Biodiversity observation score:</strong> {html.escape(PARAMETER_NOTES["biodiversity_observation_score_raw"])}</div>
           <div><strong>Priority habitat share:</strong> {html.escape(PARAMETER_NOTES["priority_habitat_share"])}</div>
           <div><strong>Distance to habitat:</strong> {html.escape(PARAMETER_NOTES["distance_to_priority_habitat_m"])}</div>
           <div><strong>Area ratio / boundary factor:</strong> {html.escape(PARAMETER_NOTES["cell_area_ratio"])} {html.escape(PARAMETER_NOTES["undersized_cell_penalty"])}</div>
@@ -1783,6 +1790,7 @@ def build_html(
 def main() -> None:
     args = parse_args()
     scores = gpd.read_parquet(args.scores_path)
+    provenance = score_provenance(scores, args.scores_path)
     boundary = gpd.read_parquet(args.boundary_path)
     admin_context = gpd.read_file(args.admin_path)
     admin_context = admin_context.to_crs(boundary.crs) if admin_context.crs != boundary.crs else admin_context
@@ -1868,6 +1876,7 @@ def main() -> None:
         top_n_per_scenario=args.top_n_per_scenario,
         top_n_per_component=args.top_n_per_component,
         component_columns=component_columns,
+        provenance=provenance,
     )
     args.out_html.parent.mkdir(parents=True, exist_ok=True)
     args.out_html.write_text(html_out)

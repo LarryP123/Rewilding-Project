@@ -3,62 +3,64 @@
 ## Overview
 
 This brief summarises the leading areas from the balanced restoration opportunity scenario.
-The current top 100 cells resolve into 9 candidate zones, but the shortlist is not evenly spread.
-The top 3 zones contain 18 of the top 100 cells, which means the analysis is already pointing toward a small number of coherent priority areas rather than isolated one-off winners.
+The current top 100 cells resolve into 8 candidate zones, but the shortlist is not evenly spread.
+The top 3 zones contain 78 of the top 100 cells, which means the analysis is already pointing toward a small number of coherent priority areas rather than isolated one-off winners.
 
 ## At A Glance
 
 - Main scenario: Balanced restoration opportunity
-- Shortlist scale: top 100 1 km cells grouped into 9 candidate zones
-- Dominant pattern: the top 3 zones account for 18% of the shortlist by cell count
-- Leading named areas: Southern Fringe (Kent), Southern Eastern Zone (Oxfordshire), Northern Western Zone (Sefton)
+- Shortlist scale: top 100 1 km cells grouped into 8 candidate zones
+- Dominant pattern: the top 3 zones account for 78% of the shortlist by cell count
+- Leading named areas: Northern Eastern Zone (Doncaster), Southern Western Zone (Somerset), Southwest Peninsula (Cornwall)
+- Source layer: `data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet`
+- Run profile: `canonical_published`
 
 ## Leading Zones
 
-### 1. Southern Fringe (Kent)
-
-A smaller southern grouping that looks useful as a lower-density comparison zone.
-
-- Cells in zone: 3
-- Max score: 70.28
-- Mean score: 69.13
-- Mean habitat share: 97.63%
-- Mean connectivity: 100.00
-- Mean restoration score: 99.02
-- Mean ALC opportunity: 100.00
-- Primary LNRS: Not assigned
-- LNRS coverage in zone: Not assigned
-- County / unitary authority: Kent
-
-### 2. Southern Eastern Zone (Oxfordshire)
-
-A small candidate zone that sits outside the three main core areas.
-
-- Cells in zone: 1
-- Max score: 70.06
-- Mean score: 70.06
-- Mean habitat share: 95.98%
-- Mean connectivity: 100.00
-- Mean restoration score: 99.04
-- Mean ALC opportunity: 100.00
-- Primary LNRS: Not assigned
-- LNRS coverage in zone: Not assigned
-- County / unitary authority: Oxfordshire
-
-### 3. Northern Western Zone (Sefton)
+### 1. Northern Eastern Zone (Doncaster)
 
 A broader candidate zone that sits outside the three main core areas.
 
-- Cells in zone: 14
-- Max score: 69.42
-- Mean score: 68.73
-- Mean habitat share: 94.32%
-- Mean connectivity: 100.00
-- Mean restoration score: 99.06
+- Cells in zone: 47
+- Max score: 71.56
+- Mean score: 70.58
+- Mean habitat share: 78.89%
+- Mean connectivity: 99.87
+- Mean restoration score: 99.08
 - Mean ALC opportunity: 100.00
 - Primary LNRS: Not assigned
 - LNRS coverage in zone: Not assigned
-- County / unitary authority: Sefton
+- County / unitary authority: Doncaster
+
+### 2. Southern Western Zone (Somerset)
+
+A broader candidate zone that sits outside the three main core areas.
+
+- Cells in zone: 12
+- Max score: 68.44
+- Mean score: 67.72
+- Mean habitat share: 80.03%
+- Mean connectivity: 99.64
+- Mean restoration score: 98.84
+- Mean ALC opportunity: 80.00
+- Primary LNRS: Not assigned
+- LNRS coverage in zone: Not assigned
+- County / unitary authority: Somerset
+
+### 3. Southwest Peninsula (Cornwall)
+
+Compact southwestern cluster with strong restoration scores and a coastal-peninsula setting.
+
+- Cells in zone: 19
+- Max score: 68.37
+- Mean score: 67.07
+- Mean habitat share: 74.49%
+- Mean connectivity: 99.71
+- Mean restoration score: 98.97
+- Mean ALC opportunity: 100.00
+- Primary LNRS: Not assigned
+- LNRS coverage in zone: Not assigned
+- County / unitary authority: Cornwall
 
 ## Interpretation
 
@@ -71,6 +73,7 @@ This is a first national prioritisation pass, not a site-level recommendation. T
 
 ## Core Files
 
+- Canonical release checkpoint: not generated in this run
 - Shortlist explorer app: `outputs/app/rewilding_opportunity_explorer.html`
 - Inspection map: `outputs/maps/scenario_balanced_top_100_map.html`
 - Methods note: `outputs/methods.md`

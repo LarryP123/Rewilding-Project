@@ -11,11 +11,13 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.canonical import CANONICAL_SCORES_PATH
 from src.geography import (
     attach_geography_name,
     dominant_name_by_group,
     summarize_named_geography,
 )
+from src.provenance import score_provenance
 
 
 def parse_args() -> argparse.Namespace:
@@ -25,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--scores-path",
         type=Path,
-        default=Path("data/interim/mvp_official_boundary_1km_v4/hex_scores.parquet"),
+        default=CANONICAL_SCORES_PATH,
         help="Path to the scored cell layer.",
     )
     parser.add_argument(
@@ -180,6 +182,7 @@ def top_cells_text(top_with_clusters: gpd.GeoDataFrame, scenario: str, cluster_i
 def main() -> None:
     args = parse_args()
     scores = gpd.read_parquet(args.scores_path)
+    provenance = score_provenance(scores, args.scores_path)
     top = scores.sort_values(args.scenario, ascending=False).head(args.top_n).copy()
     top = attach_geography_name(
         top,
@@ -210,6 +213,9 @@ def main() -> None:
         f"# Candidate Zones: {args.scenario}",
         "",
         f"Source layer: `{args.scores_path}`",
+        f"Run profile: `{provenance['run_profile']}`",
+        f"Flood source: `{provenance['flood_feature_source']}` from `{provenance['flood_source_path'] or 'not recorded'}`",
+        f"Peat source: `{provenance['peat_feature_source']}` from `{provenance['peat_source_path'] or 'not recorded'}`",
         f"Top cells clustered: {args.top_n}",
         f"Cluster distance: {int(args.cluster_distance_m)} m",
         "",
