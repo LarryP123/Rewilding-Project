@@ -4,6 +4,8 @@ A national screening and prioritisation workflow for rewilding in England.
 It combines a defined set of geospatial signals into comparable 1 km opportunity scores, shortlist tables, candidate-zone summaries, and a map app.
 It is designed to narrow England down to plausible areas for further review, not to make site-level recommendations or predict ecological outcomes.
 
+![Canonical v6 preview](docs/assets/canonical_v6_preview.svg)
+
 ## Project status
 
 This repository is currently set up for an MVP focused on England and a 1 km hex grid.
@@ -46,6 +48,8 @@ The canonical published workflow in this repository:
 - scores each cell under `scenario_nature_first`, `scenario_balanced`, and `scenario_low_conflict`,
 - exports shortlist and candidate-zone outputs from the same scored layer,
 - and packages those outputs into documentation and a standalone HTML explorer.
+
+For a visual overview of how the data, scoring model, scenarios, validation, and outputs fit together, see [docs/visual_model.md](docs/visual_model.md). For the concise portfolio-style interpretation of the latest run, see [docs/findings.md](docs/findings.md).
 
 ## What It Does Not Claim
 

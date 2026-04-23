@@ -1043,7 +1043,7 @@ def build_html(
         <div>
           <div class="eyebrow">User-facing screening app</div>
           <h1>Rewilding Opportunity Explorer</h1>
-          <p>Browse a packaged shortlist built from the top {top_n_per_scenario} cells in each scenario plus the top {top_n_per_component} cells for each component signal. Compare preset tradeoff lenses, then adjust the weights yourself to see how the map and shortlist change.</p>
+          <p>This explorer is a core-plus-variants decision aid. Start with the shared shortlist, compare how nature-first, balanced, and low-conflict lenses change the ranking, then adjust the weights yourself to see which candidate cells stay robust and which are objective-specific.</p>
         </div>
         <div class="summary-grid">
           <div class="summary-chip"><span>Packaged shortlist</span><strong id="summary-count">{len(features)} cells</strong></div>
