@@ -78,3 +78,17 @@ def test_biodiversity_observation_score_combines_taxa_and_effort_controls() -> N
     assert frame.loc[1, "biodiversity_taxa_present"] == 2
     assert frame.loc[1, "biodiversity_observation_score_raw"] > frame.loc[0, "biodiversity_observation_score_raw"]
     assert frame["biodiversity_record_coverage_score"].between(0, 100).all()
+
+
+def test_restoration_opportunity_uses_percent_habitat_share() -> None:
+    frame = pd.DataFrame(
+        {
+            "priority_habitat_share": [0.0, 80.0],
+            "connectivity_score": [100.0, 100.0],
+        }
+    )
+
+    result = add_restoration_opportunity_scores(frame)
+
+    assert result.loc[0, "restoration_opportunity_score"] == 100.0
+    assert result.loc[1, "restoration_opportunity_score"] == 20.0

@@ -151,7 +151,7 @@ Export top-ranked candidate hexes from the canonical scored layer:
 
 ```bash
 python scripts/export_top_candidates.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100
 ```
@@ -160,7 +160,7 @@ Add LNRS names and policy-area summaries when an LNRS boundary layer is availabl
 
 ```bash
 python scripts/export_top_candidates.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100 \
   --lnrs-path data/raw/reference/lnrs_boundaries.geojson
@@ -170,7 +170,7 @@ Generate clustered candidate zones with LNRS slicing carried through to the zone
 
 ```bash
 python scripts/summarize_candidate_clusters.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet \
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet \
   --scenario scenario_balanced \
   --top-n 100 \
   --lnrs-path data/raw/reference/lnrs_boundaries.geojson
@@ -198,11 +198,11 @@ This does not remove observation bias. It only makes that bias more explicit and
 - and hotspots may still partly reflect where active recorders spend time.
 
 The current canonical published result is the dedicated-data 1 km stack rooted
-at `data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet`. Local reruns
+at `data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet`. Local reruns
 that use proxy fallback can coexist for development and smoke testing, but they
 should not be treated as published outputs.
 The corresponding release checkpoint is written to
-`outputs/release/canonical_v5.json`, with `outputs/release/latest.json` updated
+`outputs/release/canonical_v6.json`, with `outputs/release/latest.json` updated
 to the same payload after a successful canonical publish pass.
 
 ## Outputs
@@ -220,7 +220,7 @@ Build the packaged shortlist explorer:
 
 ```bash
 python scripts/build_map_app.py \
-  --scores-path data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet
 ```
 
 This writes a self-contained HTML app to

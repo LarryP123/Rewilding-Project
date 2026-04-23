@@ -17,13 +17,13 @@ This run does not claim to identify final rewilding sites, predict ecological ou
 
 ## Canonical Run
 
-- Canonical release name: `canonical_v5`
-- Canonical scored layer: `data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet`
+- Canonical release name: `canonical_v6`
+- Canonical scored layer: `data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet`
 - Cells scored: 204,703
 - Study area: England using the official England analysis boundary in British National Grid (`EPSG:27700`)
 - Analysis unit: 1 km hexagonal grid cells
 - Run profile recorded in the score layer: `canonical_published`
-- Release checkpoint: not generated in this run
+- Release checkpoint: `outputs/release/canonical_v6.json`
 
 ## Core Inputs In This Run
 
@@ -39,7 +39,7 @@ This run does not claim to identify final rewilding sites, predict ecological ou
 - Agricultural opportunity from Agricultural Land Classification
 - Biodiversity opportunity from combined bird and mammal observation indicators carried in this score layer
 - Mammal observation coverage was included as the controlled Phase 2 biodiversity expansion
-- Run metadata sidecar: `data/interim/mvp_official_boundary_1km_v5/run_metadata.json`
+- Run metadata sidecar: `data/interim/mvp_official_boundary_1km_v6/run_metadata.json`
 
 ## Canonical Contract
 
@@ -63,37 +63,37 @@ An undersized-cell penalty is applied so clipped coastal or boundary fragments d
 
        scenario_nature_first
 count               204703.0
-mean                   45.33
-std                     8.21
+mean                   40.68
+std                     9.05
 min                      0.0
-25%                    41.89
-50%                    45.56
-75%                    48.56
-max                    68.62
+25%                    37.71
+50%                    43.18
+75%                     46.6
+max                    64.87
 
 ### Balanced restoration opportunity
 
        scenario_balanced
 count           204703.0
-mean               44.79
-std                 8.77
+mean               40.86
+std                 8.56
 min                  0.0
-25%                40.34
-50%                44.95
-75%                47.98
-max                71.56
+25%                37.12
+50%                42.59
+75%                46.14
+max                67.04
 
 ### Lower-conflict restoration opportunity
 
        scenario_low_conflict
 count               204703.0
-mean                   40.09
-std                    12.16
+mean                    38.0
+std                    11.05
 min                      0.0
-25%                    31.16
-50%                    41.01
-75%                    43.21
-max                    71.87
+25%                    30.82
+50%                    40.65
+75%                    43.86
+max                    72.23
 
 ## Published Outputs From This Run
 

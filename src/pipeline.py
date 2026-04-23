@@ -489,10 +489,10 @@ def build_mvp_outputs(
     features["cell_area_ratio"] = (
         features.geometry.area / expected_full_hex_area_m2
     ).clip(lower=0, upper=1)
+    features["priority_habitat_share"] = features["priority_habitat_share"].fillna(0) * 100
     features = add_connectivity_score(features)
     features = add_restoration_opportunity_scores(features)
     features = add_boundary_penalty(features)
-    features["priority_habitat_share"] = features["priority_habitat_share"].fillna(0) * 100
     features["run_profile"] = run_profile
     features["flood_feature_source"] = flood_source_name
     features["flood_source_path"] = str(flood_asset.path) if flood_asset is not None else ""

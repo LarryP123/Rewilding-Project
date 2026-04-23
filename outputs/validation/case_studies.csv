@@ -1,4 +1,4 @@
 case_type,hex_id,admin_name,headline,detail
-stable_across_objectives,hex_0131222,Doncaster,Consistently strong under all three objectives,"Ranks 4, 4, and 1 across the three scenarios; strongest signals are connectivity 100.0, lower agricultural conflict 100.0, peat opportunity 100.0."
-nature_first_specialist,hex_0008541,Devon,"Moves up when peat, flood, and biodiversity matter more","Nature-first rank 89 versus balanced rank 101; strongest signals are connectivity 100.0, lower agricultural conflict 100.0, peat opportunity 100.0."
-low_conflict_specialist,hex_0023788,Cumberland,Useful where delivery feasibility matters most,"Low-conflict rank 61 versus balanced rank 124; strongest signals are connectivity 100.0, lower agricultural conflict 100.0, restoration opportunity 99.2."
+stable_across_objectives,hex_0004129,Cornwall,Consistently strong under all three objectives,"Ranks 4, 3, and 2 across the three scenarios; strongest signals are lower agricultural conflict 100.0, connectivity 98.3, peat opportunity 85.1."
+nature_first_specialist,hex_0027105,Somerset,"Moves up when peat, flood, and biodiversity matter more","Nature-first rank 46 versus balanced rank 105; strongest signals are restoration opportunity 96.7, connectivity 96.7, peat opportunity 92.4."
+low_conflict_specialist,hex_0046503,Wigan,Useful where delivery feasibility matters most,"Low-conflict rank 26 versus balanced rank 133; strongest signals are lower agricultural conflict 100.0, connectivity 98.9, habitat mosaic 95.9."

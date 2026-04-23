@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 
-CANONICAL_VERSION = "v5"
+CANONICAL_VERSION = "v6"
 CANONICAL_RELEASE_NAME = f"canonical_{CANONICAL_VERSION}"
 
 CANONICAL_BOUNDARY_PATH = Path("data/raw/boundaries/england_boundary_analysis.parquet")

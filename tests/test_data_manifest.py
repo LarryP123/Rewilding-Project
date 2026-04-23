@@ -28,5 +28,5 @@ def test_manifest_locks_current_official_result_artifact() -> None:
     assert official["peat_raw_dedicated"].path == Path("data/raw/peat/england_peat_map.gdb")
     assert official["peat_raw_dedicated"].required is True
     assert official["official_result_scores"].path == Path(
-        "data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet"
+        "data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet"
     )

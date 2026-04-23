@@ -3,7 +3,7 @@
 # The repository's current canonical published outputs (top-100 shortlist,
 # candidate clusters, inspection maps, brief, and app) are expected to be
 # rebuilt from the dedicated-data 1 km official-boundary score layer:
-#   data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet
+#   data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet
 #
 # CORINE remains available as a local-development fallback for flood and peat
 # scoring, but it is not part of the canonical published contract.
@@ -79,35 +79,35 @@ description = "Stable cleaned peat artifact derived from the canonical simplifie
 [[dataset]]
 name = "official_result_boundary"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/analysis_boundary.parquet"
+path = "data/interim/mvp_official_boundary_1km_v6/analysis_boundary.parquet"
 description = "Canonical analysis boundary artifact for the published dedicated-data result."
 
 [[dataset]]
 name = "official_result_corine_subset"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/corine_england_subset.parquet"
+path = "data/interim/mvp_official_boundary_1km_v6/corine_england_subset.parquet"
 description = "Canonical CORINE subset artifact for habitat-context processing in the published dedicated-data result."
 
 [[dataset]]
 name = "official_result_habitat_proxy"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/habitat_proxy.parquet"
+path = "data/interim/mvp_official_boundary_1km_v6/habitat_proxy.parquet"
 description = "Canonical habitat proxy artifact for the published dedicated-data result."
 
 [[dataset]]
 name = "official_result_grid"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/hex_grid.parquet"
+path = "data/interim/mvp_official_boundary_1km_v6/hex_grid.parquet"
 description = "Canonical 1 km analysis grid for the published dedicated-data result."
 
 [[dataset]]
 name = "official_result_scores"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/hex_scores.parquet"
+path = "data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet"
 description = "Canonical scored-grid artifact backing the repository's published outputs."
 
 [[dataset]]
 name = "official_result_run_metadata"
 stage = "interim"
-path = "data/interim/mvp_official_boundary_1km_v5/run_metadata.json"
+path = "data/interim/mvp_official_boundary_1km_v6/run_metadata.json"
 description = "Canonical run metadata sidecar recording the active flood and peat source lineage."

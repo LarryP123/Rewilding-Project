@@ -228,6 +228,25 @@ def main() -> None:
         "--top-n",
         args.top_n,
     )
+    generated_outputs = {
+        "top_candidates_csv": str(top_candidates_csv),
+        "top_candidates_summary": str(top_candidates_summary),
+        "cluster_csv": str(cluster_csv),
+        "cluster_geojson": str(cluster_geojson),
+        "cluster_summary": str(cluster_summary),
+        "candidate_brief": str(candidate_brief),
+        "methods_note": str(methods_note),
+        "validation_summary": str(validation_summary),
+        "inspection_map": str(inspection_map),
+        "map_app": str(map_app),
+    }
+    write_release_checkpoint(
+        release_path=args.release_path,
+        scores_path=scores_path,
+        run_metadata_path=run_metadata_path,
+        generated_outputs=generated_outputs,
+        provenance=provenance,
+    )
     run_python_script(
         "build_candidate_brief.py",
         "--cluster-summary-path",
@@ -282,18 +301,6 @@ def main() -> None:
         scores_path,
     )
 
-    generated_outputs = {
-        "top_candidates_csv": str(top_candidates_csv),
-        "top_candidates_summary": str(top_candidates_summary),
-        "cluster_csv": str(cluster_csv),
-        "cluster_geojson": str(cluster_geojson),
-        "cluster_summary": str(cluster_summary),
-        "candidate_brief": str(candidate_brief),
-        "methods_note": str(methods_note),
-        "validation_summary": str(validation_summary),
-        "inspection_map": str(inspection_map),
-        "map_app": str(map_app),
-    }
     write_release_checkpoint(
         release_path=args.release_path,
         scores_path=scores_path,
