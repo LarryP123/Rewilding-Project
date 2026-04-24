@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Methods | Rewilding Opportunity Explorer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Rewilding Opportunity Explorer</span></a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="maps/rewilding_opportunity_explorer.html">Explorer</a>
+      <a href="locations.html">Locations</a>
+      <a href="learn.html">Learn</a>
+      <a href="methods.html">Methods</a>
+      <a href="findings.html">Findings</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="page-title">
+      <p class="eyebrow">Technical overview</p>
+      <h1>Methods.</h1>
+      <p class="lede">The canonical run scores England on a 1 km hex grid, transforming multiple spatial inputs into comparable 0 to 100 component scores and combining them under three scenario lenses.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>Canonical run</h2>
+      <ul>
+        <li>Release: <strong>canonical_v6</strong></li>
+        <li>Study area: England, British National Grid</li>
+        <li>Analysis unit: 1 km hexagonal cells</li>
+        <li>Cells scored: 204,703</li>
+        <li>Published score layer: <code>data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet</code></li>
+      </ul>
+    </section>
+
+    <section class="content-panel">
+      <h2>Scoring workflow</h2>
+      <ol>
+        <li>Standardise source layers into a common coordinate reference system.</li>
+        <li>Build a national 1 km analysis grid.</li>
+        <li>Aggregate habitat, biodiversity observation, agricultural, flood, and peat signals to each cell.</li>
+        <li>Transform each component so higher values mean stronger apparent restoration opportunity.</li>
+        <li>Apply an undersized-cell penalty so clipped coastal or boundary fragments do not dominate.</li>
+        <li>Generate nature-first, balanced, and lower-conflict scenario scores.</li>
+        <li>Export shortlists, candidate clusters, validation tables, and the interactive explorer.</li>
+      </ol>
+    </section>
+
+    <section class="content-panel">
+      <h2>Why these data were chosen</h2>
+      <p>The data choices reflect a deliberate compromise between ecological relevance, national coverage, reproducibility, and interpretability. The aim was not to build a perfect ecological model, but to create a defensible national screening workflow that uses signals people can inspect and challenge.</p>
+      <ul>
+        <li><strong>Priority habitat and habitat proximity</strong> were chosen because rewilding and landscape recovery usually make more sense where existing habitat networks can be buffered, expanded, or joined up, rather than treated as isolated fragments.</li>
+        <li><strong>Bird and mammal observations</strong> were included as pragmatic biodiversity indicators with national availability. They are imperfect and effort-sensitive, which is why the project explicitly dampens sparse-record cells instead of treating non-recording as ecological absence.</li>
+        <li><strong>Agricultural Land Classification</strong> was used as a simplified tradeoff layer because restoration decisions in England are shaped by agricultural opportunity cost and conflict, even though ALC is only a proxy for real farm-level feasibility.</li>
+        <li><strong>Flood opportunity</strong> was included because wetland and floodplain restoration are central to many restoration strategies and because hydrological context is an important part of landscape-scale opportunity.</li>
+        <li><strong>Peat opportunity</strong> was included because peat systems matter for carbon, hydrology, and habitat recovery, and they often justify restoration attention even when other signals are mixed.</li>
+        <li><strong>Scenario scoring</strong> was used because there is no single agreed definition of the “best” rewilding landscape. Different users may care more about ecological upside, balanced restoration, or lower land-use conflict.</li>
+      </ul>
+    </section>
+
+    <section class="content-panel">
+      <h2>Limitations</h2>
+      <p>The model does not predict ecological outcomes, prove deliverability, assess land ownership, replace local ecological survey, or model community consent. Observation-based biodiversity signals remain sensitive to recorder effort. Agricultural opportunity is a simplified tradeoff proxy, not a farm business assessment.</p>
+      <div class="section-actions">
+        <a class="button primary" href="files/candidate_brief.md">Open candidate brief</a>
+        <a class="button secondary" href="files/validation_summary.md">Open validation summary</a>
+      </div>
+    </section>
+
+    <section class="content-panel">
+      <h2>Literature and policy frame</h2>
+      <ul>
+        <li><a href="https://doi.org/10.1126/science.aav5570">Perino et al. 2019</a> frame rewilding around restoring ecological processes and considering social-ecological constraints.</li>
+        <li><a href="https://academic.oup.com/book/53408">Spatial conservation prioritisation</a> provides the wider decision-support tradition for comparing conservation and restoration options spatially.</li>
+        <li><a href="https://www.gov.uk/government/publications/nature-recovery-network/nature-recovery-network">England's Nature Recovery Network</a> gives the policy context for creating, restoring, connecting, and expanding wildlife-rich places.</li>
+        <li><a href="https://www.gov.uk/government/publications/local-nature-recovery-strategies/local-nature-recovery-strategies">Local Nature Recovery Strategies</a> provide the local spatial planning context this kind of screening could support.</li>
+        <li><a href="https://www.gov.uk/government/news/making-space-for-nature-a-review-of-englands-wildlife-sites-published-today">Making Space for Nature</a> remains the key England-specific reference for the case that ecological networks should be bigger, better, and more joined.</li>
+        <li><a href="https://www.nature.com/articles/s41598-023-40285-4">Peatland restoration and downstream stormflow</a> is a useful example of why peat was treated as more than a biodiversity-only variable in the scoring design.</li>
+        <li><a href="https://files.ipbes.net/ipbes-web-prod-public-files/2025-04/IPBES_Transformative_SPM_ILK_FinalForWeb.pdf">The 2025 IPBES Transformative Change summary</a> provides the wider global framing for why nature recovery now has to be treated as systemic and urgent.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>For reproducibility, the site links back to generated project outputs rather than rewriting the evidence trail by hand.</p>
+  </footer>
+</body>
+</html>
