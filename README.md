@@ -1,10 +1,61 @@
 # Rewilding Suitability
 
-A national screening and prioritisation workflow for rewilding in England.
-It combines a defined set of geospatial signals into comparable 1 km opportunity scores, shortlist tables, candidate-zone summaries, and a map app.
-It is designed to narrow England down to plausible areas for further review, not to make site-level recommendations or predict ecological outcomes.
+A reproducible geospatial screening workflow and public-facing explorer for identifying potential rewilding opportunity areas across England.
+It combines habitat, biodiversity observation, agricultural, flood, and peat-related signals into comparable 1 km opportunity scores, candidate-zone summaries, validation outputs, and an interactive site experience.
+It is designed to narrow England down to plausible landscapes for further review, not to make site-level recommendations or predict ecological outcomes.
 
 ![Canonical v6 preview](docs/assets/canonical_v6_preview.svg)
+
+| Home | Findings | Locations |
+| --- | --- | --- |
+| ![Home preview](docs/showcase/home-preview.png) | ![Findings preview](docs/showcase/findings-preview.png) | ![Locations preview](docs/showcase/locations-preview.png) |
+
+## At a glance
+
+- National-scale spatial screening project for England
+- Canonical 1 km hex-grid release with `204,703` scored cells
+- Scenario-based ranking under nature-first, balanced, and lower-conflict lenses
+- Public-facing site in `docs/` with findings, methods, locations, and explorer pages
+- Built as decision support for discussion and follow-up, not final site selection
+
+## Project highlights
+
+### Academic showcase site
+
+The repository now includes a lightweight static site under `docs/` that turns the model outputs into a clearer public-facing narrative:
+
+- landing page,
+- learn and methods pages,
+- findings summary,
+- dedicated location case studies,
+- and an interactive explorer.
+
+Start here:
+
+- [Site home](docs/index.html)
+- [Findings](docs/findings.html)
+- [Locations](docs/locations.html)
+- [Explorer](docs/maps/rewilding_opportunity_explorer.html)
+
+### What the model is strongest at
+
+The project is strongest when framed as a transparent spatial screening workflow:
+
+- it compares places under multiple scenario lenses,
+- makes assumptions inspectable,
+- highlights stable core candidates versus scenario-specific variants,
+- and connects spatial outputs to literature and policy context.
+
+### What it does not claim
+
+This project does not claim to:
+
+- identify final rewilding sites,
+- predict ecological outcomes or delivery feasibility,
+- replace local ecological assessment, ownership review, or policy due diligence,
+- or serve as a causal model of biodiversity recovery, carbon outcomes, or flood performance.
+
+High-ranking cells should be treated as candidate areas for follow-up, not as recommendations in themselves.
 
 ## Project status
 
@@ -39,8 +90,6 @@ This project is a national spatial screening workflow for England.
 Its job is to turn a defined set of land-focused inputs into comparable 1 km cell scores under a small number of policy-style scenario lenses.
 Those scores are then packaged into shortlist exports, cluster summaries, validation notes, and an interactive explorer so the outputs can be reviewed and challenged.
 
-## What It Does
-
 The canonical published workflow in this repository:
 
 - builds or reuses a national 1 km hex grid for England,
@@ -50,17 +99,6 @@ The canonical published workflow in this repository:
 - and packages those outputs into documentation and a standalone HTML explorer.
 
 For a visual overview of how the data, scoring model, scenarios, validation, and outputs fit together, see [docs/visual_model.md](docs/visual_model.md). For the concise portfolio-style interpretation of the latest run, see [docs/findings.md](docs/findings.md).
-
-## What It Does Not Claim
-
-This project does not claim to:
-
-- identify final rewilding sites,
-- predict ecological outcomes or delivery feasibility,
-- replace local ecological assessment, ownership review, or policy due diligence,
-- or serve as a causal model of biodiversity recovery, carbon outcomes, or flood performance.
-
-High-ranking cells should be treated as candidate areas for follow-up, not as recommendations in themselves.
 
 ## Repository structure
 
