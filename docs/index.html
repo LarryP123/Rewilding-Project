@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rewilding Opportunity Explorer</title>
+  <meta name="description" content="A transparent national screening prototype for exploring rewilding opportunity across England.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html" aria-label="Rewilding Opportunity Explorer home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>Rewilding Opportunity Explorer</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="maps/rewilding_opportunity_explorer.html">Explorer</a>
+      <a href="locations.html">Locations</a>
+      <a href="learn.html">Learn</a>
+      <a href="methods.html">Methods</a>
+      <a href="findings.html">Findings</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">National screening, not final site selection</p>
+        <h1>Where could rewilding conversations begin?</h1>
+        <p class="lede">This prototype turns open geospatial signals into a transparent map of restoration opportunity across England. It is designed to help people explore tradeoffs, ask better local questions, and understand why different priorities change the shortlist.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="maps/rewilding_opportunity_explorer.html">Open the explorer</a>
+          <a class="button secondary" href="locations.html">Explore locations</a>
+        </div>
+      </div>
+
+      <aside class="hero-card" aria-label="Project snapshot">
+        <div class="map-preview" role="img" aria-label="Abstract map preview with highlighted candidate areas"></div>
+        <div class="stat-grid">
+          <div class="stat">
+            <strong>204,703</strong>
+            <span>1 km cells scored in canonical v6</span>
+          </div>
+          <div class="stat">
+            <strong>3</strong>
+            <span>scenario lenses for tradeoff testing</span>
+          </div>
+          <div class="stat">
+            <strong>11</strong>
+            <span>balanced top-100 candidate zones</span>
+          </div>
+          <div class="stat">
+            <strong>36</strong>
+            <span>cells stable across all scenarios</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="why">
+      <p class="eyebrow">The idea</p>
+      <h2>Make the model understandable before making it persuasive.</h2>
+      <p class="section-intro">Rewilding is not a single land-use answer. This project is strongest when it shows how a candidate area changes under different values: ecological recovery, flood and peat opportunity, and lower agricultural conflict.</p>
+      <div class="journey-strip" aria-label="How to use this site">
+        <a class="journey-step" href="learn.html">
+          <strong>1. Start with context</strong>
+          <p>Use the home and learn pages to understand what the model does, what it does not claim, and why rewilding matters.</p>
+        </a>
+        <a class="journey-step" href="findings.html">
+          <strong>2. Read the findings</strong>
+          <p>See the main national pattern first: stable core cells, balanced candidate zones, and how scenario choice changes the shortlist.</p>
+        </a>
+        <a class="journey-step" href="locations.html">
+          <strong>3. Open the locations</strong>
+          <p>Move from abstract scores to real landscapes through the case studies for Cornwall, Somerset, and the northern borderland.</p>
+        </a>
+        <a class="journey-step" href="maps/rewilding_opportunity_explorer.html">
+          <strong>4. Explore the map</strong>
+          <p>Finish in the interactive explorer to inspect the candidate cells, compare tradeoff lenses, and test the model yourself.</p>
+        </a>
+      </div>
+      <div class="card-grid">
+        <article class="card">
+          <span class="card-number">1</span>
+          <h3>Plain-English entry point</h3>
+          <p>Visitors can start with simple explanations: what a score means, why a place appears on the map, and why a high score is only a prompt for further review.</p>
+        </article>
+        <article class="card">
+          <span class="card-number">2</span>
+          <h3>Location case studies</h3>
+          <p>The strongest public-facing pages now combine zone metrics, landscape context, and images so people can understand what the suggested places are actually like.</p>
+        </article>
+        <article class="card">
+          <span class="card-number">3</span>
+          <h3>Technical transparency</h3>
+          <p>The methods and findings pages keep the project defensible for more technical readers, including limitations, validation checks, and source caveats.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="wide-card">
+        <div>
+          <p class="eyebrow">What the platform says clearly</p>
+          <h2>A screening tool should invite scrutiny.</h2>
+          <p>This site does not tell landowners, communities, or policy teams where rewilding should happen. It helps them see where national datasets suggest opportunity may exist, what drives that signal, and what still needs to be checked locally.</p>
+          <ul class="pill-list">
+            <li>Habitat proximity</li>
+            <li>Restoration headroom</li>
+            <li>Bird and mammal records</li>
+            <li>Agricultural tradeoff</li>
+            <li>Flood opportunity</li>
+            <li>Peat opportunity</li>
+          </ul>
+        </div>
+        <div class="callout">
+          <h3>The strongest public claim</h3>
+          <p>Use the outputs as a national shortlist for learning and follow-up, not as proof of ecological outcome, land availability, deliverability, or local consent.</p>
+          <div class="section-actions">
+            <a class="button primary" href="findings.html">Read findings</a>
+            <a class="button secondary" href="locations.html">Browse locations</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="split">
+        <div>
+          <p class="eyebrow">Literature fit</p>
+          <h2>Built between rewilding theory and practical spatial prioritisation.</h2>
+          <p class="section-intro">The project connects well to process-led rewilding, systematic conservation planning, and England's nature recovery policy landscape.</p>
+        </div>
+        <ul class="source-list">
+          <li>
+            <strong>Rewilding as process-led restoration</strong>
+            <span>Perino et al. frame rewilding around restoring ecological processes and social-ecological assessment.</span>
+          </li>
+          <li>
+            <strong>Spatial conservation prioritisation</strong>
+            <span>The scoring workflow fits a decision-support tradition: compare places, objectives, and tradeoffs transparently.</span>
+          </li>
+          <li>
+            <strong>Nature Recovery Network and LNRS</strong>
+            <span>The platform can help explain how national opportunity screening relates to local nature recovery planning.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Canonical release: v6. This platform is generated from the project outputs and is intended for exploration, communication, and further review.</p>
+  </footer>
+</body>
+</html>

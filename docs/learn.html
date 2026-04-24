@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learn the Model | Rewilding Opportunity Explorer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true"></span><span>Rewilding Opportunity Explorer</span></a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="maps/rewilding_opportunity_explorer.html">Explorer</a>
+      <a href="locations.html">Locations</a>
+      <a href="learn.html">Learn</a>
+      <a href="methods.html">Methods</a>
+      <a href="findings.html">Findings</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <section class="page-title">
+      <p class="eyebrow">Plain English first</p>
+      <h1>Learn the model.</h1>
+      <p class="lede">The model asks a practical question: which 1 km cells look worth discussing further if we care about nature recovery, land-use tradeoffs, flood context, peat, and existing habitat networks?</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>What a score means</h2>
+      <p>A high score is not a recommendation. It means a cell looks promising under the chosen scenario based on the available national datasets. The right next step is local review: ecology, ownership, farming context, community views, access, cost, policy fit, and delivery feasibility.</p>
+    </section>
+
+    <section class="card-grid">
+      <article class="card">
+        <span class="card-number">A</span>
+        <h3>Restoration opportunity</h3>
+        <p>Higher where a cell is near existing priority habitat but still has room for recovery. This avoids simply ranking places that are already habitat-rich.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">B</span>
+        <h3>Biodiversity observation</h3>
+        <p>Uses bird and mammal records as a cautious signal. Sparse records are treated as low confidence, not proof that biodiversity is absent.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">C</span>
+        <h3>Agricultural opportunity</h3>
+        <p>Uses agricultural land quality as a simplified lower-conflict proxy. It does not replace farm-level economics or land manager judgement.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">D</span>
+        <h3>Flood opportunity</h3>
+        <p>Identifies places where wetland or floodplain restoration context may matter. It is a screening signal, not a hydrological model.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">E</span>
+        <h3>Peat opportunity</h3>
+        <p>Highlights peat-related restoration context. Peat condition, emissions, water table, and practical restoration potential still need local evidence.</p>
+      </article>
+      <article class="card">
+        <span class="card-number">F</span>
+        <h3>Scenario choice</h3>
+        <p>Nature-first, balanced, and lower-conflict views expose how priorities change the shortlist. The point is to compare choices, not hide them.</p>
+      </article>
+    </section>
+
+    <section class="content-panel">
+      <h2>How to read the map</h2>
+      <ol>
+        <li>Start with the balanced scenario to see the current all-round shortlist.</li>
+        <li>Switch to nature-first to see cells that rise when ecological opportunity is weighted more strongly.</li>
+        <li>Switch to lower-conflict to see cells that rise when agricultural tradeoff matters more.</li>
+        <li>Open a candidate cell and check which component scores are doing the work.</li>
+        <li>Treat the result as a question to investigate, not an answer to implement.</li>
+      </ol>
+      <div class="section-actions">
+        <a class="button primary" href="maps/rewilding_opportunity_explorer.html">Open the explorer</a>
+        <a class="button secondary" href="methods.html">Read technical methods</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Designed for both lay readers and technical users: start simple, then inspect the assumptions.</p>
+  </footer>
+</body>
+</html>
