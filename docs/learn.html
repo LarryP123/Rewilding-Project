@@ -71,12 +71,39 @@
     </section>
 
     <section class="content-panel">
+      <h2>What the model is actually doing under the hood</h2>
+      <p>The model is not trained on past rewilding success stories and it does not predict outcomes in the machine-learning sense. It uses a fixed set of rules to compare every 1 km cell in England in the same way.</p>
+      <p>For each cell, it creates several component scores, each trying to capture a different part of the rewilding opportunity picture.</p>
+      <ul>
+        <li><strong>Habitat share:</strong> how much of the cell is already covered by semi-natural habitat.</li>
+        <li><strong>Habitat distance:</strong> how near the cell is to existing habitat networks.</li>
+        <li><strong>Restoration opportunity:</strong> higher where a cell is near habitat but still has room to recover, rather than already being mostly habitat.</li>
+        <li><strong>Agricultural opportunity:</strong> higher where the dominant agricultural land grade suggests lower conflict with productive farmland.</li>
+        <li><strong>Flood opportunity:</strong> higher where flood-related land is present or nearby, based on the dedicated flood layer used in the canonical run.</li>
+        <li><strong>Peat opportunity:</strong> higher where peat-related land is present or nearby, based on the dedicated peat layer used in the canonical run.</li>
+        <li><strong>Biodiversity observation:</strong> higher where bird and mammal records suggest stronger biodiversity interest, but reduced where record coverage is too sparse to trust strongly.</li>
+      </ul>
+      <p>Those components are then combined into final scenario scores. So the model's conclusion is never "this is the correct site." Its conclusion is "under this set of national datasets and weights, this cell looks stronger or weaker than others."</p>
+    </section>
+
+    <section class="content-panel">
       <h2>What each score is really trying to capture</h2>
       <p><strong>Habitat and restoration opportunity:</strong> the model gives more credit to places that are near existing habitat but still have room to recover. It is trying to find places that could extend or connect habitat, not just places that are already in good condition.</p>
       <p><strong>Biodiversity observations:</strong> the model uses bird and mammal records as a rough signal of ecological interest, but it treats low recording effort as low confidence rather than as proof that wildlife is absent.</p>
       <p><strong>Agriculture:</strong> the model treats poorer agricultural land as a rough sign that rewilding might involve less land-use conflict. This is only a proxy, not a real farm business assessment.</p>
       <p><strong>Flood opportunity:</strong> the model combines how much flood-related area is in a cell with how near the cell is to flood-related land.</p>
       <p><strong>Peat opportunity:</strong> the model does something similar for peat, combining peat extent or weight with proximity.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>How the published run builds each component</h2>
+      <p><strong>Habitat context:</strong> CORINE land-cover data is used to estimate where semi-natural habitat already exists. The model measures both habitat share within each cell and distance from the cell to the nearest habitat polygon.</p>
+      <p><strong>Restoration opportunity:</strong> the model combines those habitat measures so that cells near habitat can score well, but cells already dominated by habitat do not automatically rise to the top. This is meant to favour extension, buffering, and connection, not just intact habitat alone.</p>
+      <p><strong>Agricultural opportunity:</strong> the model takes the dominant Agricultural Land Classification grade in each cell and converts it into a 0 to 100 opportunity score. Poorer agricultural land gets a higher score because it may involve less conflict with productive farming.</p>
+      <p><strong>Flood opportunity:</strong> the canonical run uses a dedicated flood dataset, not just land-cover classes. The model combines weighted flood-related area inside a cell with proximity to flood-related land, giving slightly more weight to area than to proximity.</p>
+      <p><strong>Peat opportunity:</strong> the canonical run also uses a dedicated peat dataset. It combines weighted peat-related area with proximity to peat-related land, again giving more weight to area than to distance.</p>
+      <p><strong>Biodiversity observation:</strong> bird and mammal observations are downloaded from NBN Atlas for England, filtered to recent years, then counted per cell as species richness and record count. The model scales richness, then dampens it where there are too few records to be very confident.</p>
+      <p><strong>Boundary penalty:</strong> cells badly clipped by the England boundary or coastline are scaled down so tiny fragments do not appear artificially important.</p>
     </section>
 
     <section class="content-panel">
@@ -89,6 +116,23 @@
       </ol>
       <p>The same cell can rise or fall depending on which scenario you choose. That is deliberate. The model is designed to show how priorities change the shortlist, not to pretend there is one single objective answer.</p>
       <p>From there, it ranks cells nationally, identifies strong clusters of neighbouring cells, and turns those into the shortlists, maps, and case-study outputs shown on this site.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>The three scenario lenses</h2>
+      <p>Each scenario uses the same component scores but changes how much weight each one gets.</p>
+      <ul>
+        <li><strong>Nature-first:</strong> gives most weight to restoration opportunity and biodiversity, with meaningful additional weight for flood and peat.</li>
+        <li><strong>Balanced:</strong> spreads weight more evenly across restoration, biodiversity, flood, peat, and agricultural tradeoff.</li>
+        <li><strong>Lower-conflict:</strong> gives much more weight to agricultural opportunity, so cells rise when they appear less likely to conflict with productive farmland.</li>
+      </ul>
+      <p>In the current published run, the weights are:</p>
+      <ul>
+        <li><strong>Nature-first:</strong> restoration 35%, flood 15%, peat 15%, agriculture 10%, habitat mosaic 5%, biodiversity 20%.</li>
+        <li><strong>Balanced:</strong> restoration 30%, flood 20%, peat 15%, agriculture 15%, habitat mosaic 5%, biodiversity 15%.</li>
+        <li><strong>Lower-conflict:</strong> restoration 18%, flood 15%, peat 10%, agriculture 35%, habitat mosaic 7%, biodiversity 15%.</li>
+      </ul>
+      <p>This means the model does not hide the value judgement. It exposes it. A place can move up or down the ranking because the user's priorities have changed, not because the underlying cell suddenly changed.</p>
     </section>
 
     <section class="content-panel">
