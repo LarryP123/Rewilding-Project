@@ -6,7 +6,7 @@ It is designed to narrow England down to plausible landscapes for further review
 
 Live site: [larryp123.github.io/Rewilding-Project](https://larryp123.github.io/Rewilding-Project/)
 
-In plain English: this model looks across England, compares places using a handful of national environmental signals, and highlights the areas that seem more worth investigating for rewilding. It does not decide where rewilding should happen. It helps shrink a very large map into a clearer shortlist for people to inspect and question.
+This model looks across England, compares places using a handful of national environmental signals, and highlights the areas that seem more worth investigating for rewilding. It does not decide where rewilding should happen. It helps shrink a very large map into a clearer shortlist for people to inspect and question.
 
 ![Canonical v6 preview](docs/assets/canonical_v6_preview.svg)
 
