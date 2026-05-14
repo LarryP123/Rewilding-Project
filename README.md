@@ -10,18 +10,19 @@ This model looks across England, compares places using a handful of national env
 
 ## What the model actually does
 
-The model is a national screening tool, not a prediction engine.
-It divides England into 1 km hexagons, checks each hexagon against a small set of national datasets, gives each hexagon a score, and then ranks the hexagons under different scenario views.
+The model is not really a predictor in the usual machine-learning sense.
+It is a rule-based national screening tool.
+It divides England into 1 km hexagons, checks each hexagon against several national datasets, turns those inputs into component scores, and then combines those scores into three final scenario views.
 
 That means its conclusion is not "rewild here."
-Its conclusion is closer to: "based on the datasets used here, these places look more worth investigating than most others."
+Its conclusion is closer to: "based on these datasets and these assumptions, these places look more worth investigating than most others."
 
 ## Which data it uses
 
 The current published run combines:
 
 - England boundary data to define the study area
-- CORINE land cover to estimate habitat context and proximity to semi-natural land
+- CORINE land cover for habitat context and proximity to semi-natural land
 - Agricultural Land Classification as a rough lower-conflict proxy
 - dedicated flood data to capture floodplain or wetland restoration context
 - dedicated peat data to capture peat-related restoration context
@@ -47,6 +48,8 @@ The model is mainly looking for places that seem to combine:
 - lower agricultural conflict
 - floodplain or wetland opportunity
 - peat restoration opportunity
+
+It then ranks cells nationally, identifies clusters of neighbouring high-scoring cells, and turns those into the shortlists, maps, and case-study outputs shown in the repository and on the site.
 
 ## What the result means
 
