@@ -38,6 +38,57 @@
     </section>
 
     <section class="content-panel">
+      <h2>What the model actually does</h2>
+      <p>The model does not try to predict the future or prove that rewilding will work in a place. It does something narrower and more practical.</p>
+      <p>It splits England into 1 km hexagons, checks each hexagon against a small set of national datasets, gives each hexagon a score, and then ranks the hexagons under different scenario views.</p>
+      <p>So the output is not "this is the best place for rewilding." The output is "these places look more worth investigating than most others, based on the signals used here."</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>Which datasets it uses</h2>
+      <p>The current published run uses six main kinds of information:</p>
+      <ol>
+        <li><strong>England boundary:</strong> defines the study area so only England is scored.</li>
+        <li><strong>CORINE land cover:</strong> used to estimate where existing semi-natural habitat already is and how close each cell is to it.</li>
+        <li><strong>Agricultural Land Classification:</strong> used as a simple proxy for how much land-use conflict there might be with agriculture.</li>
+        <li><strong>Flood data:</strong> used to identify places where floodplain or wetland restoration opportunity may matter.</li>
+        <li><strong>Peat data:</strong> used to identify places where peat restoration may matter for habitat, water, and carbon.</li>
+        <li><strong>Bird and mammal observation records:</strong> used as a cautious biodiversity signal, based on NBN Atlas records from England.</li>
+      </ol>
+    </section>
+
+    <section class="content-panel">
+      <h2>How it turns those datasets into scores</h2>
+      <ol>
+        <li>It builds a national 1 km hex grid across England.</li>
+        <li>For each hexagon, it measures how much habitat is already there and how close the hexagon is to existing habitat.</li>
+        <li>It checks the dominant agricultural land grade in that hexagon.</li>
+        <li>It measures flood and peat presence and also how near the hexagon is to flood- or peat-related areas.</li>
+        <li>It counts bird and mammal records in the hexagon, then reduces the score where records are too sparse to be very trustworthy.</li>
+        <li>It converts all of those pieces into comparable scores and combines them into final scenario scores.</li>
+      </ol>
+    </section>
+
+    <section class="content-panel">
+      <h2>What each score is really trying to capture</h2>
+      <p><strong>Habitat and restoration opportunity:</strong> the model gives more credit to places that are near existing habitat but still have room to recover. It is trying to find places that could extend or connect habitat, not just places that are already in good condition.</p>
+      <p><strong>Biodiversity observations:</strong> the model uses bird and mammal records as a rough signal of ecological interest, but it treats low recording effort as low confidence rather than as proof that wildlife is absent.</p>
+      <p><strong>Agriculture:</strong> the model treats poorer agricultural land as a rough sign that rewilding might involve less land-use conflict. This is only a proxy, not a real farm business assessment.</p>
+      <p><strong>Flood and peat:</strong> the model gives extra weight to places where floodplain, wetland, or peat restoration could matter, because those landscapes can have strong restoration value even when the other signals are mixed.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>How it reaches its final shortlist</h2>
+      <p>After all the component scores are built, the model combines them in three different ways.</p>
+      <ol>
+        <li><strong>Nature-first:</strong> gives more weight to ecological upside.</li>
+        <li><strong>Balanced:</strong> tries to keep restoration, biodiversity, flood, peat, and conflict in a more even mix.</li>
+        <li><strong>Lower-conflict:</strong> gives more weight to avoiding stronger agricultural tradeoffs.</li>
+      </ol>
+      <p>The same cell can rise or fall depending on which scenario you choose. That is deliberate. The model is designed to show how priorities change the shortlist, not to pretend there is one single objective answer.</p>
+    </section>
+
+    <section class="content-panel">
       <h2>What a score means</h2>
       <p>A high score is not a recommendation. It means a cell looks promising under the chosen scenario based on the available national datasets. The right next step is local review: ecology, ownership, farming context, community views, access, cost, policy fit, and delivery feasibility.</p>
     </section>

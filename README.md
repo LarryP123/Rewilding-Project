@@ -8,6 +8,52 @@ Live site: [larryp123.github.io/Rewilding-Project](https://larryp123.github.io/R
 
 This model looks across England, compares places using a handful of national environmental signals, and highlights the areas that seem more worth investigating for rewilding. It does not decide where rewilding should happen. It helps shrink a very large map into a clearer shortlist for people to inspect and question.
 
+## What the model actually does
+
+The model is a national screening tool, not a prediction engine.
+It divides England into 1 km hexagons, checks each hexagon against a small set of national datasets, gives each hexagon a score, and then ranks the hexagons under different scenario views.
+
+That means its conclusion is not "rewild here."
+Its conclusion is closer to: "based on the datasets used here, these places look more worth investigating than most others."
+
+## Which data it uses
+
+The current published run combines:
+
+- England boundary data to define the study area
+- CORINE land cover to estimate habitat context and proximity to semi-natural land
+- Agricultural Land Classification as a rough lower-conflict proxy
+- dedicated flood data to capture floodplain or wetland restoration context
+- dedicated peat data to capture peat-related restoration context
+- bird and mammal observation records from England as a cautious biodiversity signal
+
+## How it gets to its scores
+
+For each 1 km hexagon, the workflow:
+
+1. measures how much existing habitat is already there
+2. measures how close the cell is to existing habitat
+3. checks the dominant agricultural land grade
+4. measures flood and peat presence and proximity
+5. counts bird and mammal records and dampens cells with sparse recording effort
+6. converts those pieces into comparable component scores
+7. combines them into three final scenario scores: `nature-first`, `balanced`, and `lower-conflict`
+
+The model is mainly looking for places that seem to combine:
+
+- closeness to existing habitat networks
+- room for restoration
+- some biodiversity signal
+- lower agricultural conflict
+- floodplain or wetland opportunity
+- peat restoration opportunity
+
+## What the result means
+
+A high score means a place looks promising under the chosen scenario, given the signals in the model.
+It does not prove ecological outcome, land availability, deliverability, local consent, or cost.
+It is best used as a shortlist for closer human review.
+
 ![Canonical v6 preview](docs/assets/canonical_v6_preview.svg)
 
 | Home | Findings | Locations |
