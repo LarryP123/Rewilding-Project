@@ -4,6 +4,8 @@ A reproducible geospatial screening workflow and public-facing explorer for iden
 It combines habitat, biodiversity observation, agricultural, flood, and peat-related signals into comparable 1 km opportunity scores, candidate-zone summaries, validation outputs, and an interactive site experience.
 It is designed to narrow England down to plausible landscapes for further review, not to make site-level recommendations or predict ecological outcomes.
 
+Live site: [larryp123.github.io/Rewilding-Project](https://larryp123.github.io/Rewilding-Project/)
+
 ![Canonical v6 preview](docs/assets/canonical_v6_preview.svg)
 
 | Home | Findings | Locations |

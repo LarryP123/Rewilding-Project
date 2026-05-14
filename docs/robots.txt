@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://larryp123.github.io/Rewilding-Project/sitemap.xml
