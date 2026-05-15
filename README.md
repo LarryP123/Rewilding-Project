@@ -1,21 +1,21 @@
 # Rewilding Suitability
 
-A reproducible geospatial screening workflow and public-facing explorer for identifying potential rewilding opportunity areas across England.
-It combines habitat, biodiversity observation, agricultural, flood, and peat-related signals into comparable 1 km opportunity scores, candidate-zone summaries, validation outputs, and an interactive site experience.
-It is designed to narrow England down to plausible landscapes for further review, not to make site-level recommendations or predict ecological outcomes.
+A reproducible geospatial screening workflow and public-facing explorer for identifying possible rewilding opportunity areas across England.
+It combines habitat, biodiversity observation, agricultural, flood, and peat-related signals into 1 km opportunity scores, candidate-zone summaries, validation outputs, and an interactive site.
+It is meant to narrow England down to plausible landscapes for further review, not to make site-level recommendations or predict ecological outcomes.
 
 Live site: [larryp123.github.io/Rewilding-Project](https://larryp123.github.io/Rewilding-Project/)
 
-This model looks across England, compares places using a handful of national environmental signals, and highlights the areas that seem more worth investigating for rewilding. It does not decide where rewilding should happen. It helps shrink a very large map into a clearer shortlist for people to inspect and question.
+This model looks across England, compares places using a handful of national environmental signals, and highlights the areas that seem more worth investigating for rewilding. It does not decide where rewilding should happen. It shrinks a very large map into a shortlist people can inspect and question.
 
 ## Exactly what the model does
 
-The model is not really a predictor in the usual machine-learning sense.
+The model is not a predictor in the usual machine-learning sense.
 It is a rule-based national screening tool.
-It divides England into 1 km hexagons, checks each hexagon against several national datasets, turns those inputs into component scores, and then combines those scores into three final scenario views.
+It divides England into 1 km hexagons, checks each hexagon against several national datasets, turns those inputs into component scores, and combines those scores into three final scenario views.
 
 That means its conclusion is not "rewild here."
-Its conclusion is closer to: "based on these datasets and these assumptions, these places look more worth investigating than most others."
+It is closer to: "based on these datasets and assumptions, these places look more worth investigating than most others."
 
 ## Which data it uses
 
@@ -40,7 +40,7 @@ For each 1 km hexagon, the workflow:
 6. converts those pieces into comparable component scores
 7. combines them into three final scenario scores: `nature-first`, `balanced`, and `lower-conflict`
 
-The model is mainly looking for places that seem to combine:
+The model is mainly looking for places that combine:
 
 - closeness to existing habitat networks
 - room for restoration
@@ -92,7 +92,7 @@ Start here:
 
 ### What the model is strongest at
 
-The project is strongest when framed as a transparent spatial screening workflow:
+The project works best when framed as a transparent spatial screening workflow:
 
 - it compares places under multiple scenario lenses,
 - makes assumptions inspectable,
@@ -108,7 +108,7 @@ This project does not claim to:
 - replace local ecological assessment, ownership review, or policy due diligence,
 - or serve as a causal model of biodiversity recovery, carbon outcomes, or flood performance.
 
-High-ranking cells should be treated as candidate areas for follow-up, not as recommendations in themselves.
+High-ranking cells should be treated as candidate areas for follow-up, not recommendations in themselves.
 
 ## Project status
 

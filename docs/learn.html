@@ -34,19 +34,19 @@
     <section class="page-title">
       <p class="eyebrow">Plain English first</p>
       <h1>Learn the model.</h1>
-      <p class="lede">The model asks a practical question: which 1 km cells look worth discussing further if we care about nature recovery, land-use tradeoffs, flood context, peat, and existing habitat networks?</p>
+      <p class="lede">The model asks a simple question: which 1 km cells look worth discussing further if we care about habitat recovery, land-use tradeoffs, flood context, peat, and existing habitat networks?</p>
     </section>
 
     <section class="content-panel">
       <h2>Exactly what the model does</h2>
-      <p>The model is not really a predictor in the usual sense. It is a rule-based national screening tool.</p>
+      <p>This is not a predictive model in the machine-learning sense. It is a rule-based screening tool.</p>
       <p>It divides England into 1 km hexagons, checks each hexagon against several national datasets, turns those inputs into component scores, and then combines those scores into three final scenario views.</p>
-      <p>So its conclusion is not "rewild here." Its conclusion is closer to: "based on these datasets and these assumptions, these places look more worth investigating than most others."</p>
+      <p>So the result is not "rewild here." It is more like: "based on these datasets and assumptions, these places look more worth checking than most others."</p>
     </section>
 
     <section class="content-panel">
       <h2>Which datasets it uses</h2>
-      <p>The current published run uses six main kinds of information:</p>
+      <p>The published run uses six main inputs:</p>
       <ol>
         <li><strong>England boundary data:</strong> defines the study area so only England is scored.</li>
         <li><strong>CORINE land cover:</strong> used for habitat context and to estimate where existing semi-natural habitat already is.</li>
@@ -72,8 +72,8 @@
 
     <section class="content-panel">
       <h2>What the model is actually doing under the hood</h2>
-      <p>The model is not trained on past rewilding success stories and it does not predict outcomes in the machine-learning sense. It uses a fixed set of rules to compare every 1 km cell in England in the same way.</p>
-      <p>For each cell, it creates several component scores, each trying to capture a different part of the rewilding opportunity picture.</p>
+      <p>The model is not trained on past rewilding projects. It uses a fixed set of rules to compare every 1 km cell in England in the same way.</p>
+      <p>For each cell, it creates a small set of component scores. Each one captures a different part of the picture.</p>
       <ul>
         <li><strong>Habitat share:</strong> how much of the cell is already covered by semi-natural habitat.</li>
         <li><strong>Habitat distance:</strong> how near the cell is to existing habitat networks.</li>
@@ -83,14 +83,14 @@
         <li><strong>Peat opportunity:</strong> higher where peat-related land is present or nearby, based on the dedicated peat layer used in the canonical run.</li>
         <li><strong>Biodiversity observation:</strong> higher where bird and mammal records suggest stronger biodiversity interest, but reduced where record coverage is too sparse to trust strongly.</li>
       </ul>
-      <p>Those components are then combined into final scenario scores. So the model's conclusion is never "this is the correct site." Its conclusion is "under this set of national datasets and weights, this cell looks stronger or weaker than others."</p>
+      <p>Those components are then combined into final scenario scores. So the model is never saying "this is the correct site." It is saying "under this set of datasets and weights, this cell looks stronger or weaker than others."</p>
     </section>
 
     <section class="content-panel">
       <h2>What each score is really trying to capture</h2>
       <p><strong>Habitat and restoration opportunity:</strong> the model gives more credit to places that are near existing habitat but still have room to recover. It is trying to find places that could extend or connect habitat, not just places that are already in good condition.</p>
-      <p><strong>Biodiversity observations:</strong> the model uses bird and mammal records as a rough signal of ecological interest, but it treats low recording effort as low confidence rather than as proof that wildlife is absent.</p>
-      <p><strong>Agriculture:</strong> the model treats poorer agricultural land as a rough sign that rewilding might involve less land-use conflict. This is only a proxy, not a real farm business assessment.</p>
+      <p><strong>Biodiversity observations:</strong> the model uses bird and mammal records as a rough signal of ecological interest, but it treats low recording effort as low confidence, not proof that wildlife is absent.</p>
+      <p><strong>Agriculture:</strong> the model treats poorer agricultural land as a rough sign that rewilding might involve less conflict with farming. This is only a proxy, not a farm business assessment.</p>
       <p><strong>Flood opportunity:</strong> the model combines how much flood-related area is in a cell with how near the cell is to flood-related land.</p>
       <p><strong>Peat opportunity:</strong> the model does something similar for peat, combining peat extent or weight with proximity.</p>
     </section>
@@ -132,12 +132,12 @@
         <li><strong>Balanced:</strong> restoration 30%, flood 20%, peat 15%, agriculture 15%, habitat mosaic 5%, biodiversity 15%.</li>
         <li><strong>Lower-conflict:</strong> restoration 18%, flood 15%, peat 10%, agriculture 35%, habitat mosaic 7%, biodiversity 15%.</li>
       </ul>
-      <p>This means the model does not hide the value judgement. It exposes it. A place can move up or down the ranking because the user's priorities have changed, not because the underlying cell suddenly changed.</p>
+      <p>The value judgement is built in and visible. A place can move up or down the ranking because the user's priorities have changed, not because the cell itself has changed.</p>
     </section>
 
     <section class="content-panel">
       <h2>What a score means</h2>
-      <p>A high score is not a recommendation. It means a cell looks promising under the chosen scenario based on the available national datasets. The right next step is local review: ecology, ownership, farming context, community views, access, cost, policy fit, and delivery feasibility.</p>
+      <p>A high score is not a recommendation. It means a cell looks promising under the chosen scenario, based on the available national datasets. The next step is local review: ecology, ownership, farming context, community views, access, cost, policy fit, and delivery feasibility.</p>
       <p>It does not prove ecological outcome, land availability, deliverability, local consent, or cost.</p>
     </section>
 
@@ -191,7 +191,7 @@
   </main>
 
   <footer class="footer">
-    <p>Designed for both lay readers and technical users: start simple, then inspect the assumptions.</p>
+    <p>Start simple, then inspect the assumptions.</p>
   </footer>
 </body>
 </html>
