@@ -110,6 +110,94 @@ The canonical score layer combines six main score families:
 | Peat opportunity | Dedicated peat-source opportunity signal | Higher is more opportunity |
 | Boundary penalty | Downweights clipped boundary/coastal cell fragments | Higher is less penalised |
 
+## Canonical Scoring Structure
+
+The canonical model can also be read as a layered scoring structure: raw national datasets become standardised component scores, those components are combined under scenario-specific weights, and the resulting scenario scores are ranked and exported.
+
+```mermaid
+flowchart LR
+    Canonical["Canonical scoring model"] --> Inputs["Core inputs"]
+    Canonical --> Standardise["Standardise to comparable scores"]
+    Canonical --> Scenarios["Scenario weighting"]
+    Canonical --> Outputs["Published outputs"]
+
+    Inputs --> Habitat["Habitat share and habitat proximity"]
+    Inputs --> Biodiversity["Bird and mammal observations"]
+    Inputs --> Agriculture["Agricultural Land Classification"]
+    Inputs --> Flood["Dedicated flood opportunity data"]
+    Inputs --> Peat["Dedicated peat opportunity data"]
+    Inputs --> Boundary["Boundary geometry for clipped-cell penalty"]
+
+    Standardise --> Connectivity["Connectivity score"]
+    Standardise --> Restoration["Restoration opportunity score"]
+    Standardise --> Mosaic["Habitat mosaic score"]
+    Standardise --> BioScore["Biodiversity observation score"]
+    Standardise --> AgriScore["Agricultural opportunity score"]
+    Standardise --> FloodScore["Flood opportunity score"]
+    Standardise --> PeatScore["Peat opportunity score"]
+    Standardise --> Penalty["Undersized boundary-cell penalty"]
+
+    Habitat --> Connectivity
+    Habitat --> Restoration
+    Habitat --> Mosaic
+    Biodiversity --> BioScore
+    Agriculture --> AgriScore
+    Flood --> FloodScore
+    Peat --> PeatScore
+    Boundary --> Penalty
+
+    Scenarios --> Nature["Nature-first"]
+    Scenarios --> Balanced["Balanced"]
+    Scenarios --> LowConflict["Low-conflict"]
+
+    Connectivity --> Nature
+    Connectivity --> Balanced
+    Connectivity --> LowConflict
+    Restoration --> Nature
+    Restoration --> Balanced
+    Restoration --> LowConflict
+    Mosaic --> Nature
+    Mosaic --> Balanced
+    Mosaic --> LowConflict
+    BioScore --> Nature
+    BioScore --> Balanced
+    BioScore --> LowConflict
+    AgriScore --> Nature
+    AgriScore --> Balanced
+    AgriScore --> LowConflict
+    FloodScore --> Nature
+    FloodScore --> Balanced
+    FloodScore --> LowConflict
+    PeatScore --> Nature
+    PeatScore --> Balanced
+    PeatScore --> LowConflict
+    Penalty --> Nature
+    Penalty --> Balanced
+    Penalty --> LowConflict
+
+    Outputs --> HexLayer["Canonical scored hex layer"]
+    Outputs --> Shortlists["Top-cell shortlists"]
+    Outputs --> Clusters["Candidate-zone clusters"]
+    Outputs --> Validation["Sensitivity and overlap checks"]
+    Outputs --> Explorer["Interactive explorer"]
+
+    Nature --> HexLayer
+    Balanced --> HexLayer
+    LowConflict --> HexLayer
+    HexLayer --> Shortlists
+    HexLayer --> Clusters
+    HexLayer --> Validation
+    HexLayer --> Explorer
+```
+
+In plain terms, the canonical logic is:
+
+1. start with a fixed set of nationally available environmental inputs
+2. turn each input into a comparable `0-100` component score where higher means more apparent restoration opportunity
+3. combine those components differently under `nature-first`, `balanced`, and `low-conflict` scenario lenses
+4. apply the clipped-cell penalty so boundary fragments do not dominate
+5. rank the resulting cells and publish the ranked outputs
+
 ## Scenario Logic
 
 ```mermaid
@@ -138,4 +226,3 @@ The model is most useful when read as a **core-plus-variants decision aid**:
 - Scored layer: `data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet`
 - Release checkpoint: `outputs/release/canonical_v6.json`
 - Explorer app: `outputs/app/rewilding_opportunity_explorer.html`
-

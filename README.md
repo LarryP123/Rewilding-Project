@@ -40,6 +40,23 @@ For each 1 km hexagon, the workflow:
 6. converts those pieces into comparable component scores
 7. combines them into three final scenario scores: `nature-first`, `balanced`, and `lower-conflict`
 
+## What kind of scoring model this is
+
+This is a **weighted multi-criteria scoring model**.
+It is not a machine-learning predictor and it is not a plain average.
+
+The core idea is:
+
+1. different kinds of evidence are **standardised** onto a common `0-100` scale
+2. those standardised indicators are **weighted** according to their importance in a given scenario
+3. the weighted indicators are combined into a **composite score** using a **weighted linear combination**
+
+This allows unlike variables, such as habitat proximity, agricultural land quality, biodiversity records, flood context, and peat context, to be compared consistently in one framework.
+
+In practical terms, a higher final score means a cell looks more promising **relative to other cells in the same model run**, given the selected inputs and assumptions.
+
+For a structure-style overview of the canonical model, see the [canonical scoring structure](docs/visual_model.md#canonical-scoring-structure).
+
 The model is mainly looking for places that combine:
 
 - closeness to existing habitat networks

@@ -486,6 +486,68 @@ h3 {
   margin: 0.55rem 0;
 }
 
+.model-diagram {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  gap: 18px;
+  align-items: start;
+  margin: 28px 0 24px;
+}
+
+.model-column {
+  display: grid;
+  gap: 12px;
+  position: relative;
+}
+
+.model-column:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  top: 18px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--leaf);
+  color: #fffdf6;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(31, 73, 51, 0.18);
+}
+
+.model-node {
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 14px 30px rgba(27, 39, 32, 0.08);
+}
+
+.model-node-root,
+.model-node-branch {
+  color: #fffdf6;
+  background: linear-gradient(135deg, var(--leaf), var(--leaf-dark));
+  border-color: rgba(31, 73, 51, 0.32);
+  box-shadow: 0 18px 34px rgba(31, 73, 51, 0.2);
+}
+
+.model-node-root {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: "Iowan Old Style", Georgia, serif;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+
+.model-node-branch {
+  font-weight: 800;
+}
+
 .case-study-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
@@ -585,6 +647,18 @@ h3 {
 
   .journey-step::after {
     display: none;
+  }
+
+  .model-diagram {
+    grid-template-columns: 1fr;
+  }
+
+  .model-column:not(:last-child)::after {
+    top: auto;
+    right: auto;
+    bottom: -14px;
+    left: 50%;
+    transform: translateX(-50%) rotate(90deg);
   }
 
   .site-header {

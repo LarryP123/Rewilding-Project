@@ -62,6 +62,63 @@
     </section>
 
     <section class="content-panel">
+      <h2>What kind of scoring model this is</h2>
+      <p>This project uses a <strong>weighted multi-criteria scoring approach</strong>. It is not a machine-learning predictor and it is not just a simple average. Instead, it combines several different kinds of environmental evidence into one transparent composite score.</p>
+      <p>The logic is straightforward. First, different indicators are normalised onto a common <strong>0 to 100</strong> scale so unlike variables can be compared consistently. Second, those standardised indicators are given different weights depending on the scenario. Third, the model combines them using a <strong>weighted linear combination</strong>, producing a final score that reflects relative opportunity under the chosen assumptions.</p>
+      <p>In practical terms, that means a high score does not predict a guaranteed ecological outcome. It means the cell looks more promising <em>relative to other cells in the same model run</em>, given the selected inputs and scenario weights.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>Canonical scoring structure</h2>
+      <p>This is the canonical logic in one view: nationally available inputs are turned into standardised component scores, those components are combined under three scenario lenses, and the ranked outputs are then published as the score layer, shortlists, clusters, validation tables, and explorer.</p>
+      <div class="model-diagram" aria-label="Canonical scoring structure diagram">
+        <div class="model-column">
+          <div class="model-node model-node-root">Canonical scoring model</div>
+        </div>
+        <div class="model-column">
+          <div class="model-node model-node-branch">Core inputs</div>
+          <div class="model-node">Habitat share and proximity</div>
+          <div class="model-node">Bird and mammal observations</div>
+          <div class="model-node">Agricultural land classification</div>
+          <div class="model-node">Flood opportunity data</div>
+          <div class="model-node">Peat opportunity data</div>
+          <div class="model-node">Boundary geometry</div>
+        </div>
+        <div class="model-column">
+          <div class="model-node model-node-branch">Standardised component scores</div>
+          <div class="model-node">Connectivity score</div>
+          <div class="model-node">Restoration opportunity score</div>
+          <div class="model-node">Habitat mosaic score</div>
+          <div class="model-node">Biodiversity observation score</div>
+          <div class="model-node">Agricultural opportunity score</div>
+          <div class="model-node">Flood opportunity score</div>
+          <div class="model-node">Peat opportunity score</div>
+          <div class="model-node">Undersized cell penalty</div>
+        </div>
+        <div class="model-column">
+          <div class="model-node model-node-branch">Scenario weighting</div>
+          <div class="model-node">Nature-first</div>
+          <div class="model-node">Balanced</div>
+          <div class="model-node">Low-conflict</div>
+        </div>
+        <div class="model-column">
+          <div class="model-node model-node-branch">Published outputs</div>
+          <div class="model-node">Canonical scored hex layer</div>
+          <div class="model-node">Top-cell shortlists</div>
+          <div class="model-node">Candidate-zone clusters</div>
+          <div class="model-node">Sensitivity and overlap checks</div>
+          <div class="model-node">Interactive explorer</div>
+        </div>
+      </div>
+      <ul>
+        <li>The model is a weighted multi-criteria framework rather than a plain average.</li>
+        <li>Each component is put onto a common 0 to 100 scale so unlike variables can be compared consistently.</li>
+        <li>The three scenarios differ by weights, not by using different raw datasets.</li>
+        <li>The final score is best read as a relative opportunity ranking within the same canonical run.</li>
+      </ul>
+    </section>
+
+    <section class="content-panel">
       <h2>Why these data were chosen</h2>
       <p>The data choices are a compromise between ecological relevance, national coverage, reproducibility, and practicality. The aim was not to build a perfect ecological model. It was to build a national screening workflow using signals people can inspect and argue with.</p>
       <ul>
