@@ -15,6 +15,13 @@ This folder contains quick preview assets for presenting the rewilding platform 
 - `findings-preview.png`: findings narrative and place-based interpretation
 - `locations-preview.png`: location collection and case-study entry points
 
+## Theme mockups
+
+- `index.html`: comparison page for the new visual directions
+- `theme-atlas.html`: warmer editorial "Atlas Field Guide" direction
+- `theme-ledger.html`: darker premium "Moss Ledger" direction
+- `theme-signal.html`: bolder public-facing "Canopy Signal" direction
+
 ## Best pages to show
 
 - `docs/index.html`

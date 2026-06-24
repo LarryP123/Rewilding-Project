@@ -388,38 +388,42 @@ def build_html(
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Rewilding Opportunity Explorer</title>
+  <title>Rewilding Opportunity Atlas</title>
   <style>
     :root {{
-      --paper: #efe6d5;
-      --panel: rgba(251, 247, 240, 0.94);
-      --panel-strong: rgba(255, 252, 247, 0.98);
-      --ink: #233128;
-      --muted: #67746c;
-      --line: rgba(62, 75, 66, 0.14);
-      --accent: #2f6b4b;
-      --accent-soft: rgba(47, 107, 75, 0.12);
-      --warm: #bf8d3f;
-      --warm-soft: rgba(191, 141, 63, 0.12);
-      --map-bg: #e6dcc7;
-      --shadow: 0 18px 48px rgba(21, 28, 25, 0.12);
-      --radius: 18px;
+      --paper: #1d2722;
+      --paper-deep: #141b18;
+      --panel: rgba(28, 39, 33, 0.88);
+      --panel-strong: rgba(24, 34, 28, 0.95);
+      --panel-soft: rgba(255, 255, 255, 0.032);
+      --ink: #edf2ea;
+      --muted: #acb8ac;
+      --line: rgba(233, 240, 231, 0.09);
+      --accent: #8fb36d;
+      --accent-soft: rgba(143, 179, 109, 0.12);
+      --warm: #caa05d;
+      --warm-soft: rgba(202, 160, 93, 0.14);
+      --map-bg: #314439;
+      --shadow: 0 24px 60px rgba(8, 12, 10, 0.32);
+      --radius: 20px;
     }}
     * {{ box-sizing: border-box; }}
     body {{
       margin: 0;
       color: var(--ink);
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.72), rgba(255,255,255,0) 36%),
-        linear-gradient(180deg, #efe5d3 0%, #e3d8c2 100%);
-      font-family: "Avenir Next", "Segoe UI", sans-serif;
+        radial-gradient(circle at 14% 12%, rgba(255,255,255,0.08), rgba(255,255,255,0) 26%),
+        radial-gradient(circle at 82% 10%, rgba(202,160,93,0.12), rgba(202,160,93,0) 18%),
+        linear-gradient(180deg, var(--paper) 0%, var(--paper-deep) 100%);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      line-height: 1.5;
     }}
     .shell {{
       min-height: 100vh;
-      padding: 20px;
+      padding: 24px;
       display: grid;
       grid-template-columns: minmax(0, 1.65fr) minmax(360px, 440px);
-      gap: 18px;
+      gap: 20px;
     }}
     .panel {{
       background: var(--panel);
@@ -427,60 +431,174 @@ def build_html(
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
+      position: relative;
+    }}
+    .panel::before {{
+      content: "";
+      position: absolute;
+      inset: 1px;
+      border-radius: calc(var(--radius) - 1px);
+      border: 1px solid rgba(255,255,255,0.03);
+      pointer-events: none;
     }}
     .stage {{
-      padding: 18px;
+      padding: 22px;
       display: grid;
-      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-rows: auto auto auto auto minmax(0, 1fr);
+      gap: 18px;
+      background:
+        radial-gradient(circle at top right, rgba(202,160,93,0.08), rgba(202,160,93,0) 22rem),
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
+    }}
+    .stage-topbar {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 16px;
+    }}
+    .atlas-mark {{
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+    }}
+    .atlas-mark::before {{
+      content: "";
+      width: 30px;
+      height: 30px;
+      border-radius: 10px 10px 16px 10px;
+      background: linear-gradient(135deg, var(--clay, #caa05d), var(--accent));
+      box-shadow: inset 0 -8px 18px rgba(0,0,0,0.22);
+    }}
+    .atlas-menu {{
+      position: relative;
+    }}
+    .atlas-menu summary {{
+      list-style: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      user-select: none;
+    }}
+    .atlas-menu summary::-webkit-details-marker {{
+      display: none;
+    }}
+    .atlas-menu[open] summary {{
+      background: rgba(255,255,255,0.08);
+    }}
+    .atlas-menu-panel {{
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      min-width: 220px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(24, 34, 28, 0.96);
+      box-shadow: 0 18px 34px rgba(8, 12, 10, 0.28);
+      backdrop-filter: blur(16px);
+      z-index: 6;
+    }}
+    .atlas-menu-panel a {{
+      display: block;
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 14px;
+    }}
+    .atlas-menu-panel a:hover {{
+      background: rgba(255,255,255,0.06);
     }}
     .hero {{
       display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 14px;
-      align-items: end;
+      grid-template-columns: 1.14fr 0.86fr;
+      gap: 16px;
+      align-items: stretch;
     }}
     .eyebrow {{
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.18em;
       font-size: 11px;
-      color: var(--muted);
-      margin-bottom: 10px;
+      color: var(--warm);
+      margin-bottom: 12px;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      font-weight: 600;
     }}
     h1 {{
       margin: 0;
-      font-family: "Iowan Old Style", "Georgia", serif;
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      line-height: 0.94;
-      letter-spacing: -0.02em;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      font-size: clamp(2.4rem, 5vw, 3.95rem);
+      line-height: 0.91;
+      letter-spacing: -0.06em;
+      text-wrap: balance;
     }}
     .hero p {{
-      margin: 14px 0 0 0;
+      margin: 16px 0 0 0;
       color: var(--muted);
-      max-width: 68ch;
-      line-height: 1.5;
+      max-width: 60ch;
+      line-height: 1.62;
+      font-size: 15px;
+    }}
+    .hero-copy {{
+      padding: 6px 4px 0 2px;
+    }}
+    .hero-copy::after {{
+      content: "";
+      display: block;
+      width: 132px;
+      height: 1px;
+      margin-top: 22px;
+      background: linear-gradient(90deg, var(--warm), rgba(202,160,93,0));
     }}
     .summary-grid {{
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
+      align-content: start;
     }}
     .summary-chip {{
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42));
+      position: relative;
+      padding: 14px 15px 14px 17px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.025));
       border: 1px solid var(--line);
+    }}
+    .summary-chip::before {{
+      content: "";
+      position: absolute;
+      inset: 10px auto 10px 0;
+      width: 3px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--warm), var(--accent));
     }}
     .summary-chip strong {{
       display: block;
-      font-size: 1.06rem;
-      margin-top: 3px;
+      margin-top: 6px;
+      font-size: 1.22rem;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
     }}
     .summary-chip span {{
       color: var(--muted);
-      font-size: 12px;
-      text-transform: uppercase;
+      font-size: 11px;
       letter-spacing: 0.08em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .controls {{
       display: grid;
@@ -491,16 +609,18 @@ def build_html(
     .control-block {{
       background: var(--panel-strong);
       border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 12px 14px;
+      border-radius: 18px;
+      padding: 14px 16px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }}
     .control-label {{
       display: block;
-      margin-bottom: 8px;
-      font-size: 12px;
+      margin-bottom: 10px;
+      font-size: 11px;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.12em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .segmented {{
       display: flex;
@@ -508,18 +628,26 @@ def build_html(
       flex-wrap: wrap;
     }}
     .segmented button {{
-      border: 1px solid rgba(47, 107, 75, 0.16);
-      background: white;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.025);
       color: var(--ink);
       border-radius: 999px;
       padding: 10px 14px;
-      font-size: 13px;
+      font-size: 12px;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.01em;
       cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+    }}
+    .segmented button:hover {{
+      transform: translateY(-1px);
+      border-color: rgba(202,160,93,0.24);
     }}
     .segmented button.active {{
-      background: var(--accent);
-      color: white;
-      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(202,160,93,0.92), rgba(143,179,109,0.92));
+      color: #18211c;
+      border-color: transparent;
+      box-shadow: inset 0 -8px 18px rgba(0,0,0,0.12), 0 8px 18px rgba(8,12,10,0.18);
     }}
     .range-row {{
       display: flex;
@@ -534,13 +662,16 @@ def build_html(
       min-width: 42px;
       text-align: right;
       font-weight: 700;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      color: var(--warm);
+      font-variant-numeric: tabular-nums;
     }}
     .control-block select {{
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 10px;
+      border-radius: 13px;
       padding: 10px 12px;
-      background: white;
+      background: rgba(255,255,255,0.03);
       font: inherit;
       color: inherit;
     }}
@@ -548,22 +679,24 @@ def build_html(
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
       gap: 14px;
-      padding: 16px;
+      padding: 18px;
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.75), rgba(255,255,255,0.18)),
-        linear-gradient(180deg, rgba(191,141,63,0.08), rgba(47,107,75,0.06));
+        radial-gradient(circle at top left, rgba(255,255,255,0.06), rgba(255,255,255,0.01)),
+        linear-gradient(180deg, rgba(202,160,93,0.08), rgba(143,179,109,0.05));
       border: 1px solid var(--line);
-      border-radius: 20px;
+      border-radius: 22px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
     }}
     .parameter-panel {{
-      padding: 14px 16px;
-      background: rgba(255, 252, 247, 0.82);
+      padding: 16px 18px;
+      background: var(--panel-soft);
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 22px;
     }}
     .parameter-panel h3 {{
       margin: 0;
-      font-size: 1rem;
+      font-size: 1.04rem;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
     }}
     .parameter-panel p {{
       margin: 8px 0 0 0;
@@ -579,14 +712,18 @@ def build_html(
     }}
     .parameter-card {{
       padding: 11px 12px;
-      border-radius: 14px;
+      border-radius: 16px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.025);
     }}
     .parameter-card strong {{
       display: block;
-      font-size: 13px;
+      font-size: 11px;
       margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--warm);
     }}
     .parameter-card span {{
       color: var(--muted);
@@ -595,7 +732,9 @@ def build_html(
     }}
     .weighting-panel h2 {{
       margin: 0;
-      font-size: 1.15rem;
+      font-size: 1.4rem;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      letter-spacing: -0.03em;
     }}
     .weighting-panel p {{
       margin: 8px 0 0 0;
@@ -608,9 +747,9 @@ def build_html(
       margin-top: 14px;
     }}
     .slider-card {{
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.66);
+      padding: 13px 15px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
       border: 1px solid var(--line);
     }}
     .slider-head {{
@@ -621,11 +760,15 @@ def build_html(
       margin-bottom: 8px;
     }}
     .slider-head strong {{
-      font-size: 14px;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .slider-head span {{
-      color: var(--muted);
+      color: var(--warm);
       font-size: 12px;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      font-variant-numeric: tabular-nums;
     }}
     .slider-card input[type="range"] {{
       width: 100%;
@@ -638,6 +781,8 @@ def build_html(
       gap: 10px;
       color: var(--muted);
       font-size: 12px;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      font-variant-numeric: tabular-nums;
     }}
     .slider-help {{
       margin-top: 8px;
@@ -652,13 +797,13 @@ def build_html(
     }}
     .preset-card {{
       padding: 12px 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.7);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
       border: 1px solid var(--line);
     }}
     .preset-card.active {{
-      border-color: rgba(47, 107, 75, 0.36);
-      background: rgba(47, 107, 75, 0.1);
+      border-color: rgba(143, 179, 109, 0.4);
+      background: rgba(143, 179, 109, 0.12);
     }}
     .preset-card button {{
       width: 100%;
@@ -673,6 +818,10 @@ def build_html(
     .preset-card strong {{
       display: block;
       margin-bottom: 4px;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }}
     .preset-card p {{
       margin: 0;
@@ -684,22 +833,34 @@ def build_html(
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border-radius: 999px;
+      border-radius: 18px;
       padding: 8px 10px;
       font-size: 12px;
       font-weight: 700;
       background: var(--warm-soft);
-      color: #8a652b;
+      color: #e1c089;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      letter-spacing: 0.04em;
     }}
     .map-card {{
       position: relative;
       overflow: hidden;
-      padding: 14px;
+      padding: 16px;
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.7), rgba(255,255,255,0.15)),
-        linear-gradient(180deg, #f0e7d7 0%, #e1d6bf 100%);
+        radial-gradient(circle at 18% 12%, rgba(202,160,93,0.08), rgba(202,160,93,0) 18rem),
+        radial-gradient(circle at 82% 8%, rgba(255,255,255,0.05), rgba(255,255,255,0) 20rem),
+        linear-gradient(180deg, #25352d 0%, #1c2822 100%);
       border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }}
+    .map-card::after {{
+      content: "";
+      position: absolute;
+      inset: 14px;
       border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.03);
+      pointer-events: none;
     }}
     .map-toolbar {{
       position: absolute;
@@ -712,12 +873,15 @@ def build_html(
     }}
     .map-toolbar button {{
       border: 1px solid var(--line);
-      background: rgba(255, 253, 248, 0.92);
+      background: rgba(255, 255, 255, 0.06);
       border-radius: 999px;
       padding: 9px 12px;
       cursor: pointer;
       color: var(--ink);
-      box-shadow: 0 10px 24px rgba(22, 29, 26, 0.08);
+      box-shadow: 0 10px 24px rgba(8, 12, 10, 0.2);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.02em;
+      font-size: 11px;
     }}
     svg {{
       width: 100%;
@@ -725,9 +889,10 @@ def build_html(
       display: block;
       border-radius: 16px;
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.72), rgba(255,255,255,0.22)),
+        radial-gradient(circle at 20% 14%, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 26rem),
+        radial-gradient(circle at 80% 12%, rgba(202,160,93,0.08), rgba(202,160,93,0) 16rem),
         var(--map-bg);
-      border: 1px solid rgba(63, 76, 67, 0.12);
+      border: 1px solid rgba(233, 240, 231, 0.08);
       touch-action: none;
     }}
     .england-shape {{
@@ -737,20 +902,20 @@ def build_html(
     .county-line {{
       vector-effect: non-scaling-stroke;
       pointer-events: none;
-      mix-blend-mode: multiply;
+      opacity: 0.7;
     }}
     .context-outline {{
       vector-effect: non-scaling-stroke;
       pointer-events: none;
     }}
     .context-label {{
-      fill: rgba(35, 49, 40, 0.62);
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
+      fill: rgba(237, 242, 234, 0.46);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       paint-order: stroke;
-      stroke: rgba(239, 230, 213, 0.95);
+      stroke: rgba(29, 39, 34, 0.95);
       stroke-width: 4px;
       stroke-linejoin: round;
       pointer-events: none;
@@ -765,17 +930,20 @@ def build_html(
       pointer-events: none;
     }}
     .cell.active {{
-      stroke: #101713 !important;
-      stroke-width: 2.6 !important;
+      stroke: #f2ebdc !important;
+      stroke-width: 2.1 !important;
       opacity: 1 !important;
+      filter: drop-shadow(0 0 10px rgba(242, 235, 220, 0.22));
     }}
     .map-note {{
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      margin-top: 10px;
+      margin-top: 12px;
       color: var(--muted);
-      font-size: 13px;
+      font-size: 12px;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.01em;
     }}
     .map-tooltip {{
       position: absolute;
@@ -783,11 +951,11 @@ def build_html(
       top: 0;
       z-index: 4;
       width: min(280px, calc(100% - 32px));
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(35, 49, 40, 0.14);
-      background: rgba(255, 252, 247, 0.96);
-      box-shadow: 0 14px 36px rgba(21, 28, 25, 0.18);
+      padding: 14px 15px;
+      border-radius: 18px;
+      border: 1px solid rgba(233, 240, 231, 0.09);
+      background: rgba(25, 36, 30, 0.96);
+      box-shadow: 0 14px 36px rgba(8, 12, 10, 0.32);
       backdrop-filter: blur(8px);
       pointer-events: none;
       opacity: 0;
@@ -798,15 +966,20 @@ def build_html(
       opacity: 1;
     }}
     .map-tooltip-title {{
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       color: var(--ink);
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      letter-spacing: -0.02em;
     }}
     .map-tooltip-subtitle {{
-      margin-top: 3px;
-      color: var(--accent);
-      font-size: 13px;
+      margin-top: 5px;
+      color: var(--warm);
+      font-size: 11px;
       font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .map-tooltip-grid {{
       margin-top: 10px;
@@ -819,6 +992,7 @@ def build_html(
     .map-tooltip-grid strong {{
       color: var(--ink);
       font-size: 13px;
+      font-variant-numeric: tabular-nums;
     }}
     .map-tooltip-note {{
       margin-top: 10px;
@@ -832,13 +1006,22 @@ def build_html(
       grid-template-rows: auto auto minmax(0, 1fr);
       gap: 14px;
       min-height: 0;
+      background:
+        radial-gradient(circle at top, rgba(143,179,109,0.05), rgba(143,179,109,0) 18rem),
+        linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
     }}
     .selected-card,
     .list-card {{
       background: var(--panel-strong);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 16px;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }}
+    .selected-card {{
+      background:
+        radial-gradient(circle at top right, rgba(202,160,93,0.06), rgba(202,160,93,0) 18rem),
+        var(--panel-strong);
     }}
     .scenario-note {{
       color: var(--muted);
@@ -848,8 +1031,9 @@ def build_html(
     .place-name {{
       margin-top: 6px;
       font-size: 15px;
-      color: var(--accent);
-      font-weight: 700;
+      color: #d8e0d1;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }}
     .selected-meta {{
       display: flex;
@@ -862,65 +1046,73 @@ def build_html(
       background: var(--accent-soft);
       color: var(--accent);
       padding: 7px 10px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
+      letter-spacing: 0.02em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .score-line {{
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 10px;
-      padding: 10px 0;
+      padding: 10px 0 14px;
       border-bottom: 1px solid var(--line);
       font-size: 14px;
     }}
     .score-line strong {{
-      font-size: 26px;
+      font-size: 34px;
       line-height: 1;
-      font-family: "Iowan Old Style", "Georgia", serif;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      letter-spacing: -0.03em;
     }}
     .metric-grid {{
-      margin-top: 14px;
+      margin-top: 16px;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 10px;
     }}
     .metric-card {{
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255,255,255,0.66);
+      border-radius: 18px;
+      padding: 13px 14px;
+      background: rgba(255,255,255,0.035);
     }}
     .metric-card-soft {{
-      background: rgba(245, 242, 234, 0.95);
+      background: rgba(255,255,255,0.035);
     }}
     .metric-label {{
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.3;
       min-height: 30px;
+      letter-spacing: 0.03em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .metric-value {{
-      margin-top: 6px;
-      font-size: 20px;
+      margin-top: 8px;
+      font-size: 21px;
       font-weight: 700;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      font-variant-numeric: tabular-nums;
     }}
     .section-title {{
-      margin-top: 16px;
-      font-size: 13px;
+      margin-top: 18px;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
+      letter-spacing: 0.14em;
+      color: var(--warm);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .explain-list {{
-      margin-top: 16px;
+      margin-top: 18px;
       display: grid;
       gap: 10px;
     }}
     .explain-row {{
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 18px;
       padding: 11px 12px;
-      background: rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.035);
     }}
     .explain-head {{
       display: grid;
@@ -928,7 +1120,9 @@ def build_html(
       gap: 10px;
       align-items: baseline;
       margin-bottom: 8px;
-      font-size: 14px;
+      font-size: 13px;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.01em;
     }}
     .explain-head span {{
       color: var(--muted);
@@ -937,18 +1131,18 @@ def build_html(
     .bar-track {{
       height: 9px;
       border-radius: 999px;
-      background: rgba(47, 107, 75, 0.12);
+      background: rgba(255,255,255,0.08);
       overflow: hidden;
     }}
     .bar-fill {{
       height: 100%;
       border-radius: 999px;
-      background: linear-gradient(90deg, #cb9c4a 0%, #708c43 58%, #2f6b4b 100%);
+      background: linear-gradient(90deg, #d0a55c 0%, #8fb36d 58%, #4e7d5d 100%);
     }}
     .why-text {{
-      margin-top: 14px;
+      margin-top: 16px;
       color: var(--muted);
-      line-height: 1.5;
+      line-height: 1.62;
       font-size: 14px;
     }}
     .methods-note {{
@@ -958,6 +1152,13 @@ def build_html(
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
+    }}
+    .methods-note strong {{
+      color: var(--warm);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 11px;
     }}
     .list-card {{
       display: grid;
@@ -972,11 +1173,13 @@ def build_html(
     }}
     .area-pill {{
       border-radius: 999px;
-      background: rgba(191, 141, 63, 0.12);
-      color: #87632c;
+      background: rgba(202, 160, 93, 0.14);
+      color: #e1c089;
       padding: 7px 10px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
+      letter-spacing: 0.03em;
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
     }}
     .list-header {{
       display: flex;
@@ -986,7 +1189,9 @@ def build_html(
       margin-bottom: 10px;
     }}
     .list-header strong {{
-      font-size: 18px;
+      font-size: 19px;
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      letter-spacing: -0.02em;
     }}
     .shortlist {{
       overflow: auto;
@@ -996,27 +1201,52 @@ def build_html(
     }}
     .shortlist-item {{
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255,255,255,0.64);
+      border-radius: 18px;
+      padding: 13px 14px;
+      background: rgba(255,255,255,0.035);
       cursor: pointer;
+      transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+      width: 100%;
+      color: var(--ink);
+      text-align: left;
+      appearance: none;
+      -webkit-appearance: none;
+    }}
+    .shortlist-item:hover {{
+      transform: translateY(-1px);
+      border-color: rgba(202,160,93,0.24);
     }}
     .shortlist-item.active {{
-      border-color: rgba(47, 107, 75, 0.4);
-      background: rgba(47, 107, 75, 0.12);
+      border-color: rgba(143, 179, 109, 0.36);
+      background: linear-gradient(180deg, rgba(143, 179, 109, 0.12), rgba(143, 179, 109, 0.06));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     }}
     .shortlist-item-head {{
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 7px;
+      margin-bottom: 8px;
+    }}
+    .shortlist-item-head strong:first-child {{
+      font-family: "Baskerville", "Iowan Old Style", "Palatino Linotype", "Georgia", serif;
+      font-size: 1.02rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }}
+    .shortlist-item-head span {{
+      color: var(--warm);
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      font-variant-numeric: tabular-nums;
     }}
     .shortlist-meta {{
       display: flex;
       flex-wrap: wrap;
       gap: 6px 10px;
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
+      font-family: "IBM Plex Mono", "SFMono-Regular", "Menlo", monospace;
+      letter-spacing: 0.03em;
     }}
 	    @media (max-width: 1240px) {{
       .shell {{
@@ -1034,23 +1264,36 @@ def build_html(
 	        grid-template-rows: auto auto auto;
 	      }}
 	    }}
-  </style>
+	  </style>
 </head>
 <body>
   <div class="shell">
     <section class="panel stage">
+      <div class="stage-topbar">
+        <div class="atlas-mark">Rewilding opportunity atlas</div>
+        <details class="atlas-menu">
+          <summary>Menu</summary>
+          <div class="atlas-menu-panel">
+            <a data-nav="home" href="#">Home</a>
+            <a data-nav="locations" href="#">Locations</a>
+            <a data-nav="learn" href="#">Learn</a>
+            <a data-nav="methods" href="#">Methods</a>
+            <a data-nav="findings" href="#">Findings</a>
+          </div>
+        </details>
+      </div>
       <div class="hero">
-        <div>
-          <div class="eyebrow">User-facing screening app</div>
-          <h1>Rewilding Opportunity Explorer</h1>
-          <p>This explorer is a core-plus-variants decision aid. Start with the shared shortlist, compare how nature-first, balanced, and low-conflict lenses change the ranking, then adjust the weights yourself to see which candidate cells stay robust and which are objective-specific.</p>
+        <div class="hero-copy">
+          <div class="eyebrow">Public screening tool</div>
+          <h1>Rewilding Opportunity Atlas</h1>
+          <p>This atlas presents a shared shortlist alongside alternative scenario views. Compare how nature-first, balanced, and low-conflict lenses shift the ranking, then adjust the weights to see which cells remain robust and which depend on a particular objective mix.</p>
         </div>
         <div class="summary-grid">
-          <div class="summary-chip"><span>Packaged shortlist</span><strong id="summary-count">{len(features)} cells</strong></div>
-          <div class="summary-chip"><span>Canonical build</span><strong>{html.escape(CANONICAL_RELEASE_NAME)}</strong></div>
-          <div class="summary-chip"><span>Preset lenses</span><strong>{len(SCENARIO_WEIGHTS)} starting points</strong></div>
-          <div class="summary-chip"><span>Weighted components</span><strong>{len(component_columns)} live sliders</strong></div>
-          <div class="summary-chip"><span>Selection</span><strong id="summary-selection">{initial_hex}</strong></div>
+          <div class="summary-chip"><span>Shortlist scope</span><strong id="summary-count">{len(features)} cells</strong></div>
+          <div class="summary-chip"><span>Release checkpoint</span><strong>{html.escape(CANONICAL_RELEASE_NAME)}</strong></div>
+          <div class="summary-chip"><span>Scenario presets</span><strong>{len(SCENARIO_WEIGHTS)} lenses</strong></div>
+          <div class="summary-chip"><span>Live components</span><strong>{len(component_columns)} weights</strong></div>
+          <div class="summary-chip"><span>Active selection</span><strong id="summary-selection">{initial_hex}</strong></div>
         </div>
       </div>
 
@@ -1086,7 +1329,7 @@ def build_html(
 
       <div class="weighting-panel">
         <div>
-          <div class="eyebrow" style="margin-bottom:6px;">Weight workbench</div>
+          <div class="eyebrow" style="margin-bottom:6px;">Weight studio</div>
           <h2>Adjust the scoring mix</h2>
           <p id="weighting-note">Preset lenses load a starting mix. As soon as you move a slider, the app switches to a live custom lens and re-ranks every packaged cell.</p>
           <div class="weight-sliders" id="weight-sliders"></div>
@@ -1119,7 +1362,7 @@ def build_html(
       </div>
 
       <div class="parameter-panel">
-        <div class="eyebrow" style="margin-bottom:6px;">How To Read It</div>
+        <div class="eyebrow" style="margin-bottom:6px;">Reading notes</div>
         <h3>What the main parameters mean</h3>
         <p>This app is a screening tool. The controls below help compare tradeoff lenses and trim the shortlist, but they do not replace local site checks or detailed feasibility work.</p>
         <div class="parameter-grid">
@@ -1141,7 +1384,7 @@ def build_html(
             <div class="scenario-note" id="scenario-note">{SCENARIO_NOTES['scenario_balanced']}</div>
           </div>
           <div style="text-align:right;">
-            <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Score</div>
+            <div style="font-size:11px;color:var(--warm);text-transform:uppercase;letter-spacing:0.16em;font-family:'IBM Plex Mono','SFMono-Regular','Menlo',monospace;">Score</div>
             <strong id="selected-score">{initial_props['scenario_balanced']:.2f}</strong>
           </div>
         </div>
@@ -1202,6 +1445,7 @@ def build_html(
     const weightingNote = document.getElementById('weighting-note');
     const cellLayer = document.getElementById('cell-layer');
     const mapTooltip = document.getElementById('map-tooltip');
+    const navLinks = document.querySelectorAll('[data-nav]');
     const shortlistEl = document.getElementById('shortlist');
     const mapStatus = document.getElementById('map-status');
     const listTitle = document.getElementById('list-title');
@@ -1240,6 +1484,26 @@ def build_html(
     let currentMode = APP.initialMode;
     let customWeights = {{ ...presetMap.get(APP.initialMode).weights }};
     let currentRankMap = new Map();
+
+    function navHref(target) {{
+      const path = window.location.pathname || '';
+      const inDocsMap = path.includes('/docs/maps/');
+      const inOutputsApp = path.includes('/outputs/app/');
+      const base = inDocsMap ? '..' : inOutputsApp ? '../../docs' : '..';
+      const routes = {{
+        home: `${{base}}/index.html`,
+        locations: `${{base}}/locations.html`,
+        learn: `${{base}}/learn.html`,
+        methods: `${{base}}/methods.html`,
+        findings: `${{base}}/findings.html`,
+      }};
+      return routes[target] || `${{base}}/index.html`;
+    }}
+
+    navLinks.forEach((link) => {{
+      const target = link.dataset.nav;
+      link.setAttribute('href', navHref(target));
+    }});
 
     function clamp(value, min, max) {{
       return Math.max(min, Math.min(max, value));
@@ -1284,10 +1548,10 @@ def build_html(
       const safeMax = maxValue <= minValue ? minValue + 1 : maxValue;
       const ratio = clamp((value - minValue) / (safeMax - minValue), 0, 1);
       const stops = [
-        [240, 234, 220],
-        [199, 162, 79],
-        [111, 143, 61],
-        [47, 107, 75],
+        [79, 93, 84],
+        [133, 106, 66],
+        [154, 176, 98],
+        [197, 212, 136],
       ];
       const scaled = ratio * (stops.length - 1);
       const index = Math.min(Math.floor(scaled), stops.length - 2);

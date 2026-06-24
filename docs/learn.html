@@ -71,7 +71,7 @@
     </section>
 
     <section class="content-panel">
-      <h2>What the model is actually doing under the hood</h2>
+      <h2>How the model works in practice</h2>
       <p>The model is not trained on past rewilding projects. It uses a fixed set of rules to compare every 1 km cell in England in the same way.</p>
       <p>For each cell, it creates a small set of component scores. Each one captures a different part of the picture.</p>
       <ul>
@@ -83,7 +83,7 @@
         <li><strong>Peat opportunity:</strong> higher where peat-related land is present or nearby, based on the dedicated peat layer used in the canonical run.</li>
         <li><strong>Biodiversity observation:</strong> higher where bird and mammal records suggest stronger biodiversity interest, but reduced where record coverage is too sparse to trust strongly.</li>
       </ul>
-      <p>Those components are then combined into final scenario scores. So the model is never saying "this is the correct site". It is saying "under this set of datasets and weights, this cell looks stronger or weaker than others".</p>
+      <p>Those components are then combined into final scenario scores. The model is not saying "this is the correct site". It is saying "under this set of datasets and weights, this cell looks stronger or weaker than others".</p>
     </section>
 
     <section class="content-panel">
@@ -191,7 +191,7 @@
   </main>
 
   <footer class="footer">
-    <p>Start simple, then inspect the assumptions.</p>
+    <p>Read the model as a screening tool, then inspect the assumptions.</p>
   </footer>
 </body>
 </html>
