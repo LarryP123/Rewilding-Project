@@ -1,0 +1,28 @@
+name: "nature_recovery_policy_explorer"
+version: "1.0.0"
+config-version: 2
+
+profile: "nature_recovery_policy_explorer"
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  nature_recovery_policy_explorer:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+    exports:
+      +materialized: table
+
+seeds:
+  nature_recovery_policy_explorer:
+    +quote_columns: false

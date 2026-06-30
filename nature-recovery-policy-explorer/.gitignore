@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.venv_*/
+venv/
+*.egg-info/
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# data artifacts
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/publish/*
+!data/publish/.gitkeep
+
+# local OS noise
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+
+# local profiles
+profiles/.user.yml

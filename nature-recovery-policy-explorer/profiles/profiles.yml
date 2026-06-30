@@ -1,0 +1,7 @@
+nature_recovery_policy_explorer:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: /Users/laurencepengelly/rewilding-suitability/nature-recovery-policy-explorer/data/processed/policy_explorer.duckdb
+      threads: 4

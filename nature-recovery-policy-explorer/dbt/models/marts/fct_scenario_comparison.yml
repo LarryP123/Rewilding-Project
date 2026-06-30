@@ -1,0 +1,34 @@
+version: 2
+
+models:
+  - name: fct_scenario_comparison
+    description: One row per hex summarising how rankings change across policy scenarios.
+    columns:
+      - name: hex_id
+        tests:
+          - not_null
+          - unique
+      - name: best_scenario_id
+        tests:
+          - not_null
+      - name: worst_scenario_id
+        tests:
+          - not_null
+      - name: best_rank
+        tests:
+          - not_null
+      - name: worst_rank
+        tests:
+          - not_null
+      - name: rank_spread
+        tests:
+          - not_null
+      - name: top_decile_scenario_count
+        tests:
+          - not_null
+      - name: stable_core_flag
+        tests:
+          - not_null
+      - name: contested_flag
+        tests:
+          - not_null

@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: fct_scenario_scores
+    columns:
+      - name: hex_id
+        tests:
+          - not_null
+      - name: scenario_id
+        tests:
+          - not_null
+      - name: weighted_score
+        tests:
+          - not_null
+      - name: national_rank
+        tests:
+          - not_null
+      - name: percentile
+        tests:
+          - not_null

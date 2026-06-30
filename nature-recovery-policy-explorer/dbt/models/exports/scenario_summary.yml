@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: scenario_summary
+    description: Scenario-level publish summary for the policy explorer frontend and docs.
+    columns:
+      - name: scenario_id
+        tests:
+          - not_null
+          - unique
+      - name: hex_count
+        tests:
+          - not_null
+      - name: top_decile_hex_count
+        tests:
+          - not_null

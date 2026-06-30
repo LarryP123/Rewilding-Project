@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_hex_base
+    columns:
+      - name: hex_id
+        tests:
+          - not_null
+          - unique
+      - name: restoration_opportunity_score
+        tests:
+          - not_null
+      - name: flood_opportunity_score_raw
+        tests:
+          - not_null
+      - name: peat_opportunity_score_raw
+        tests:
+          - not_null
+      - name: connectivity_score
+        tests:
+          - not_null
+      - name: habitat_mosaic_score
+        tests:
+          - not_null
+      - name: biodiversity_observation_score_raw
+        tests:
+          - not_null
+      - name: undersized_cell_penalty
+        tests:
+          - not_null

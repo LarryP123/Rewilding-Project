@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Nature Recovery Policy Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <p class="eyebrow">England</p>
+        <h1>Nature Recovery Policy Explorer</h1>
+        <p class="intro">
+          Compare how different policy priorities reshape the national pattern
+          of nature recovery opportunity across England.
+        </p>
+
+        <section class="panel">
+          <h2>Scenario</h2>
+          <div id="scenario-buttons" class="button-stack"></div>
+        </section>
+
+        <section class="panel">
+          <h2>Scenario Summary</h2>
+          <div id="scenario-summary-panel" class="scenario-summary-panel">
+            <p class="selection-empty">Loading scenario summary…</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Filters</h2>
+          <label class="toggle-row">
+            <input id="stable-toggle" type="checkbox" />
+            <span>Stable core only</span>
+          </label>
+          <label class="toggle-row">
+            <input id="contested-toggle" type="checkbox" />
+            <span>Contested only</span>
+          </label>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title-row">
+            <h2>Selected Hex</h2>
+            <button id="clear-selection" class="clear-button" type="button">
+              Clear
+            </button>
+          </div>
+          <div id="selection-panel" class="selection-panel">
+            <p class="selection-empty">Click a hex on the map to inspect it.</p>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Overview</h2>
+          <div class="about-copy">
+            <p>
+              This explorer compares how different policy priorities reshape a
+              national shortlist for nature recovery.
+            </p>
+            <p>
+              The same hex grid is recolored under each scenario. Darker cells
+              are weaker under the active lens. Lighter cells are stronger.
+            </p>
+            <p>
+              <strong>Stable core</strong> highlights places that remain strong
+              across every scenario. <strong>Contested</strong> highlights
+              places that only rise under some policy lenses.
+            </p>
+            <p>
+              Click a hex to inspect its current percentile, strongest scenario,
+              and how sensitive it is to policy tradeoffs.
+            </p>
+          </div>
+        </section>
+      </aside>
+
+      <main class="map-panel">
+        <div class="map-toolbar">
+          <div class="toolbar-copy">
+            <p class="eyebrow">Current Scenario</p>
+            <h2 id="scenario-title">Balanced Strategy</h2>
+            <p class="toolbar-subtitle">
+              Switch scenario, filter the grid, then inspect individual hexes on the map.
+            </p>
+          </div>
+          <div class="toolbar-actions">
+            <button id="open-methods" class="toolbar-button" type="button">
+              Methods
+            </button>
+            <div class="legend">
+              <span><i class="dot dot-low"></i>Lower percentile</span>
+              <span><i class="dot dot-high"></i>Higher percentile</span>
+            </div>
+          </div>
+        </div>
+        <div id="map" class="map"></div>
+        <div id="map-hover-tooltip" class="map-hover-tooltip" hidden></div>
+        <div id="map-status" class="map-status">
+          Waiting for a real vector tile source or PMTiles endpoint.
+        </div>
+      </main>
+    </div>
+
+    <dialog id="methods-modal" class="methods-modal">
+      <div class="methods-modal-card">
+        <div class="methods-modal-header">
+          <div>
+            <p class="eyebrow">Methods</p>
+            <h2>Using The Explorer</h2>
+          </div>
+          <button id="close-methods" class="toolbar-button" type="button">
+            Close
+          </button>
+        </div>
+        <div class="methods-modal-body">
+          <p>
+            The explorer compares the same national hex grid under five policy
+            scenarios. Each scenario uses a different percentile field from the
+            scoring model, so the map shows how priorities shift the shortlist.
+          </p>
+          <p>
+            Lighter cells are stronger under the active scenario. Darker cells
+            are weaker. Stable core highlights places that remain strong across
+            every scenario. Contested highlights places that only rise under
+            some policy lenses.
+          </p>
+          <p>
+            Clicking a hex shows its active percentile, strongest scenario,
+            best rank, and rank spread. Rank spread is a quick indicator of how
+            sensitive that place is to policy tradeoffs.
+          </p>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <script src="https://unpkg.com/pmtiles@3.2.0/dist/pmtiles.js"></script>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

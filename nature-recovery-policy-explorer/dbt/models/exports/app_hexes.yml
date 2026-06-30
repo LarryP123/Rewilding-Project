@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: app_hexes
+    description: Slim hex-level publish table for the policy explorer frontend.
+    columns:
+      - name: hex_id
+        tests:
+          - not_null
+          - unique
+      - name: stable_core_flag
+        tests:
+          - not_null
+      - name: contested_flag
+        tests:
+          - not_null
