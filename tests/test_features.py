@@ -81,6 +81,28 @@ def test_add_distance_to_habitat_feature_uses_nearest_geometry_per_cell(
     assert actual["hex_b"] == pytest.approx(7.0)
 
 
+def test_add_distance_to_habitat_feature_deduplicates_tied_nearest_matches(
+    grid: gpd.GeoDataFrame,
+) -> None:
+    # hex_a's centroid is (5, 5). Both squares sit exactly 10m away, on
+    # opposite sides, so sjoin_nearest returns two tied matches for hex_a.
+    habitat = gpd.GeoDataFrame(
+        {
+            "geometry": [
+                _square(15, 4, 16, 6),
+                _square(-6, 4, -5, 6),
+            ]
+        },
+        crs=grid.crs,
+    )
+
+    result = add_distance_to_habitat_feature(grid, habitat, tile_size_m=1_000)
+
+    assert len(result) == len(grid)
+    actual = result.set_index("hex_id")["distance_to_priority_habitat_m"]
+    assert actual["hex_a"] == pytest.approx(10.0)
+
+
 def test_add_bng_opportunity_score_favors_hexes_near_registered_sites(
     grid: gpd.GeoDataFrame,
 ) -> None:

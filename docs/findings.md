@@ -40,21 +40,23 @@ That suggests the corrected v6 shortlist is not fragile to modest judgement call
 
 To connect the model to a real policy mechanism, hex proximity to England's actual Biodiversity Gain Sites Register was checked against the balanced-scenario top 100. The register (312 sites nationally, via a daily-updated public mirror) records where developers are already buying off-site habitat-creation units — a live signal of where the BNG market is active today, not where ecological opportunity is highest.
 
-Nationally, BNG activity is fairly widespread: `45.4%` of all scored hexes sit within 10km of a registered site, and `85.3%` within 20km. But the model's top 100 balanced candidates are not more likely to be near one than that baseline — only `40.0%` sit within 10km (vs `45.4%` nationally), and the correlation between the balanced suitability score and BNG proximity across all `205,065` hexes is essentially flat (`r = 0.096`).
+Nationally, BNG activity is fairly widespread: `45.3%` of all scored hexes sit within 10km of a registered site, and `85.3%` within 20km. But the model's top 100 balanced candidates are not more likely to be near one than that baseline — only `40.0%` sit within 10km (vs `45.3%` nationally), and the correlation between the balanced suitability score and BNG proximity across all `204,703` hexes is essentially flat (`r = 0.10`).
 
 The same check was repeated across all three scenario lenses, on the theory that low-conflict (which favours easy, lower-grade farmland) might line up better with real gain sites than nature-first. It does not — if anything, the opposite:
 
 | Scenario | Correlation with BNG proximity | Top-100 within 10km |
 | --- | --- | --- |
 | Nature-first | `0.138` | `41.0%` |
-| Balanced | `0.096` | `40.0%` |
+| Balanced | `0.095` | `40.0%` |
 | Low-conflict | `-0.010` | `35.0%` |
 
-None of the three explain more than a couple of percent of the variation, and low-conflict — the one built to favour lower-friction agricultural land — has the weakest relationship of all. That rules out land-quality logic as the explanation and points toward something none of these features capture: most plausibly, gain sites cluster near whichever development created the offset obligation, not near ecologically or agriculturally strategic land.
+None of the three explain more than a couple of percent of the variation, and low-conflict — the one built to favour lower-friction agricultural land — has the weakest relationship of all. That rules out land-quality logic as the explanation.
 
-That is a useful finding, not a null result: it suggests the current BNG market is not yet concentrating around the places this model identifies as strong ecological opportunity, under any of the scenario framings tested. The market is still young (mandatory BNG only began in February 2024, and 312 sites is an early snapshot), so this is worth rechecking as the register grows. For now, treat "ecologically promising" and "commercially active for BNG" as two separate questions this project can answer, not one.
+So what does explain gain-site placement? Testing it directly rather than just speculating: distance from each hex to the nearest CORINE urban or industrial polygon was checked as a proxy for "where development, and therefore offset demand, already exists." That proxy explains BNG proximity roughly twice as well as any scenario lens does (`r = 0.267` vs `0.138` at best), and the pattern holds at the site level too — registered BNG sites sit consistently closer to urban/industrial land than the national baseline at every distance checked: `73.7%` of sites are within 2km of urban land, against `63.0%` of all hexes nationally (mean `1.59km` vs `2.02km`). The effect is real but modest, not overwhelming — England's urban/industrial land is already dense enough that the national baseline is high to begin with. Reproduce this with `python scripts/analyze_bng_alignment.py`, which also writes a timestamped record to `outputs/bng_alignment_tracking.jsonl` for tracking whether this shifts as the register grows.
 
-Reproduce this with `python scripts/apply_bng_opportunity_score.py`.
+That is a useful finding, not a null result: it suggests the current BNG market is placed more by proximity to existing development than by ecological or agricultural strategy, under any of the scenario framings tested here. The market is still young (mandatory BNG only began in February 2024, and 312 sites is an early snapshot), so this is worth rechecking as the register grows. For now, treat "ecologically promising" and "commercially active for BNG" as two separate questions this project can answer, not one.
+
+Reproduce the core comparison with `python scripts/apply_bng_opportunity_score.py`.
 
 ## 6. The strongest public claim is screening, not recommendation
 

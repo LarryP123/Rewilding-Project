@@ -222,7 +222,10 @@ def add_distance_to_habitat_feature(
             how="left",
             distance_col=feature_name,
         )
-        result = joined[["hex_id", feature_name]]
+        # sjoin_nearest returns one row per tied-nearest match, not one row
+        # per input point. Ties have identical distances by definition, so
+        # dropping the extras is lossless and keeps one row per hex.
+        result = joined[["hex_id", feature_name]].drop_duplicates(subset="hex_id")
         if checkpoint_dir is not None:
             result.to_parquet(checkpoint)
         chunks.append(result)
