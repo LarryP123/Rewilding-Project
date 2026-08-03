@@ -290,11 +290,26 @@ python scripts/summarize_candidate_clusters.py \
 
 Both export scripts also accept `--bng-path` to flag candidate hexes and zones
 that overlap a registered off-site Biodiversity Gain Site, using the same
-point-in-polygon join as LNRS. There is currently no official bulk download of
-the Biodiversity Gain Site Register (it's a lookup-only public register at
-`environment.data.gov.uk/biodiversity-net-gain`), so `data/raw/reference/bng_gain_sites.geojson`
-must be supplied manually — for example from individual register lookups or a
-third-party aggregator:
+point-in-polygon join as LNRS. This only matches if the supplied file has
+polygon geometry — the real-world source below is point geometry (site
+markers, not boundaries), so this join will not match anything against it.
+It is kept for a future polygon-boundary release of the register; for the
+current point data, use `apply_bng_opportunity_score.py` below instead.
+
+There is no official bulk download from the government register itself (it's
+a lookup-only public register at `environment.data.gov.uk/biodiversity-net-gain`),
+but The Wildlife Trusts host a daily-updated copy of the register as a public
+ArcGIS Feature Layer, queryable without authentication:
+
+```bash
+curl -s "https://services-eu1.arcgis.com/Y9jgVEvgymHqAYPW/arcgis/rest/services/BNGSitesTEST/FeatureServer/0/query?where=1%3D1&outFields=*&f=geojson" \
+  -o data/raw/reference/bng_gain_sites.geojson
+```
+
+This returns ~300 registered sites as points (`Reference`, `LPA`, `site_size`,
+and a `boundary_url` link to the official register's site boundary PDF) in
+WGS84 — `apply_bng_opportunity_score.py` reprojects it to match the hex grid
+automatically. `data/raw/reference/` is gitignored, so this stays local.
 
 ```bash
 python scripts/export_top_candidates.py \

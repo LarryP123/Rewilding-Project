@@ -261,7 +261,16 @@ def add_bng_opportunity_score(
     where off-site BNG habitat creation is already registered, not where
     rewilding is ecologically best. It is meant to be combined with the core
     suitability features, not used on its own.
+
+    bng_sites is reprojected to the grid's CRS if needed. Real-world BNG
+    site exports are commonly WGS84 (lat/lon); add_distance_to_habitat_feature
+    reprojects the grid to match the habitat source instead of the other way
+    round, which would silently compute distances in degrees rather than
+    metres if bng_sites were left ungeoreferenced to the grid.
     """
+
+    if bng_sites.crs is not None and grid.crs is not None and bng_sites.crs != grid.crs:
+        bng_sites = bng_sites.to_crs(grid.crs)
 
     scored = add_distance_to_habitat_feature(
         grid,

@@ -97,6 +97,30 @@ def test_add_bng_opportunity_score_favors_hexes_near_registered_sites(
     assert actual.loc["hex_b", "bng_opportunity_score_raw"] < actual.loc["hex_a", "bng_opportunity_score_raw"]
 
 
+def test_add_bng_opportunity_score_reprojects_mismatched_crs(
+    grid: gpd.GeoDataFrame,
+) -> None:
+    bng_sites_native_crs = gpd.GeoDataFrame(
+        {"geometry": [Point(5, 5)]},
+        crs=grid.crs,
+    )
+    bng_sites_other_crs = bng_sites_native_crs.to_crs(4326)
+    assert bng_sites_other_crs.crs != grid.crs
+
+    expected = add_bng_opportunity_score(grid, bng_sites_native_crs, tile_size_m=1_000)
+    actual = add_bng_opportunity_score(grid, bng_sites_other_crs, tile_size_m=1_000)
+
+    expected_distances = expected.set_index("hex_id")["distance_to_bng_site_m"]
+    actual_distances = actual.set_index("hex_id")["distance_to_bng_site_m"]
+
+    # A generous tolerance: the point round-trips through a WGS84<->OSGB36
+    # datum transform, which is not bit-exact. The regression this guards
+    # against is computing distance in degrees instead of metres, which
+    # would be off by many orders of magnitude more than this.
+    for hex_id in expected_distances.index:
+        assert actual_distances[hex_id] == pytest.approx(expected_distances[hex_id], abs=500.0)
+
+
 def test_add_weighted_area_feature_respects_polygon_weights(grid: gpd.GeoDataFrame) -> None:
     weighted = gpd.GeoDataFrame(
         {
