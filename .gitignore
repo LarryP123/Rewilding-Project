@@ -12,3 +12,5 @@ data/interim/
 !data/raw/boundaries/england_boundary_analysis.parquet
 
 outouts/top_candidates/*.geojson
+
+outputs/qgis/*.gpkg

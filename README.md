@@ -331,6 +331,22 @@ python scripts/apply_bng_opportunity_score.py \
   --bng-path data/raw/reference/bng_gain_sites.geojson
 ```
 
+Build a QGIS project comparing rewilding opportunity to the real BNG register
+directly, for opening and exploring in desktop GIS software rather than a
+script (requires QGIS installed; the GeoPackage is regenerated each run and
+gitignored, so it isn't committed):
+
+```bash
+python scripts/build_bng_qgis_project.py
+open -a QGIS outputs/qgis/bng_alignment.qgs
+```
+
+This writes `outputs/qgis/bng_alignment.gpkg` (hex scores, the England
+boundary, and the 312 registered BNG sites, all in EPSG:27700) plus a `.qgs`
+project with a graduated choropleth on `scenario_balanced` and the BNG sites
+styled as a separate point layer, ready to inspect, restyle, or lay out a
+print composition from directly in QGIS.
+
 Right now the local-development workflow can use:
 
 - the local `data/interim/corine_subset.parquet` layer for habitat-context features,

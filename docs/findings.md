@@ -36,7 +36,27 @@ Sensitivity tests perturb flood, peat, and biodiversity weights by `+/-20%` whil
 
 That suggests the corrected v6 shortlist is not fragile to modest judgement calls about weights.
 
-## 5. The strongest public claim is screening, not recommendation
+## 5. Registered BNG market activity does not track the model's top opportunity areas
+
+To connect the model to a real policy mechanism, hex proximity to England's actual Biodiversity Gain Sites Register was checked against the balanced-scenario top 100. The register (312 sites nationally, via a daily-updated public mirror) records where developers are already buying off-site habitat-creation units — a live signal of where the BNG market is active today, not where ecological opportunity is highest.
+
+Nationally, BNG activity is fairly widespread: `45.4%` of all scored hexes sit within 10km of a registered site, and `85.3%` within 20km. But the model's top 100 balanced candidates are not more likely to be near one than that baseline — only `40.0%` sit within 10km (vs `45.4%` nationally), and the correlation between the balanced suitability score and BNG proximity across all `205,065` hexes is essentially flat (`r = 0.096`).
+
+The same check was repeated across all three scenario lenses, on the theory that low-conflict (which favours easy, lower-grade farmland) might line up better with real gain sites than nature-first. It does not — if anything, the opposite:
+
+| Scenario | Correlation with BNG proximity | Top-100 within 10km |
+| --- | --- | --- |
+| Nature-first | `0.138` | `41.0%` |
+| Balanced | `0.096` | `40.0%` |
+| Low-conflict | `-0.010` | `35.0%` |
+
+None of the three explain more than a couple of percent of the variation, and low-conflict — the one built to favour lower-friction agricultural land — has the weakest relationship of all. That rules out land-quality logic as the explanation and points toward something none of these features capture: most plausibly, gain sites cluster near whichever development created the offset obligation, not near ecologically or agriculturally strategic land.
+
+That is a useful finding, not a null result: it suggests the current BNG market is not yet concentrating around the places this model identifies as strong ecological opportunity, under any of the scenario framings tested. The market is still young (mandatory BNG only began in February 2024, and 312 sites is an early snapshot), so this is worth rechecking as the register grows. For now, treat "ecologically promising" and "commercially active for BNG" as two separate questions this project can answer, not one.
+
+Reproduce this with `python scripts/apply_bng_opportunity_score.py`.
+
+## 6. The strongest public claim is screening, not recommendation
 
 The project is strongest when framed as a transparent spatial screening workflow. It identifies places worth closer review under different objectives, while explicitly avoiding claims about final site selection, predicted ecological outcomes, ownership, or delivery feasibility.
 
@@ -49,3 +69,4 @@ That makes it suitable as a decision-support prototype and portfolio project: it
 - Validation summary: `outputs/validation/validation_summary.md`
 - Visual model: `docs/visual_model.md`
 - Explorer app: `outputs/app/rewilding_opportunity_explorer.html`
+- BNG market-proximity script: `scripts/apply_bng_opportunity_score.py`
