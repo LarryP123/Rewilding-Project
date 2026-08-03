@@ -4,6 +4,8 @@ import pandas as pd
 import pytest
 
 from src.score import (
+    BNG_SCENARIO_WEIGHTS,
+    SCENARIO_WEIGHTS,
     add_biodiversity_observation_score,
     add_bird_observation_scores,
     add_boundary_penalty,
@@ -40,6 +42,30 @@ def test_apply_scenarios_stays_within_expected_score_range() -> None:
 
     for scenario_name in ("scenario_nature_first", "scenario_balanced", "scenario_low_conflict"):
         assert frame[scenario_name].between(0, 100).all()
+
+
+def test_bng_scenario_weights_are_excluded_from_default_scenario_weights() -> None:
+    assert not set(BNG_SCENARIO_WEIGHTS).intersection(SCENARIO_WEIGHTS)
+
+
+def test_apply_scenarios_computes_bng_aligned_lens_via_explicit_override() -> None:
+    frame = pd.DataFrame(
+        {
+            "restoration_opportunity_score": [20.0, 80.0],
+            "flood_opportunity_score_raw": [20.0, 50.0],
+            "peat_opportunity_score_raw": [10.0, 30.0],
+            "agri_opportunity_score_raw": [40.0, 60.0],
+            "habitat_mosaic_score": [30.0, 40.0],
+            "biodiversity_observation_score_raw": [10.0, 20.0],
+            "bng_opportunity_score_raw": [0.0, 100.0],
+        }
+    )
+
+    result = apply_scenarios(frame, scenario_weights=BNG_SCENARIO_WEIGHTS)
+
+    assert "scenario_bng_aligned" in result.columns
+    assert result["scenario_bng_aligned"].between(0, 100).all()
+    assert result.loc[1, "scenario_bng_aligned"] > result.loc[0, "scenario_bng_aligned"]
 
 
 def test_boundary_penalty_rejects_invalid_thresholds() -> None:

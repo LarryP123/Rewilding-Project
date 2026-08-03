@@ -5,6 +5,7 @@ import pytest
 from shapely.geometry import Point, Polygon
 
 from src.features import (
+    add_bng_opportunity_score,
     add_distance_to_habitat_feature,
     add_flood_opportunity_feature,
     add_habitat_share_feature,
@@ -78,6 +79,22 @@ def test_add_distance_to_habitat_feature_uses_nearest_geometry_per_cell(
 
     assert actual["hex_a"] == pytest.approx(0.0)
     assert actual["hex_b"] == pytest.approx(7.0)
+
+
+def test_add_bng_opportunity_score_favors_hexes_near_registered_sites(
+    grid: gpd.GeoDataFrame,
+) -> None:
+    bng_sites = gpd.GeoDataFrame(
+        {"geometry": [Point(5, 5)]},
+        crs=grid.crs,
+    )
+
+    result = add_bng_opportunity_score(grid, bng_sites, tile_size_m=1_000)
+    actual = result.set_index("hex_id")
+
+    assert actual.loc["hex_a", "distance_to_bng_site_m"] == pytest.approx(0.0)
+    assert actual.loc["hex_a", "bng_opportunity_score_raw"] == pytest.approx(100.0)
+    assert actual.loc["hex_b", "bng_opportunity_score_raw"] < actual.loc["hex_a", "bng_opportunity_score_raw"]
 
 
 def test_add_weighted_area_feature_respects_polygon_weights(grid: gpd.GeoDataFrame) -> None:

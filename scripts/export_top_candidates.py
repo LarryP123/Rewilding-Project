@@ -59,6 +59,22 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional LNRS name column override.",
     )
+    parser.add_argument(
+        "--bng-path",
+        type=Path,
+        default=Path("data/raw/reference/bng_gain_sites.geojson"),
+        help=(
+            "Optional Biodiversity Gain Site Register extract used to flag hexes "
+            "that overlap a registered off-site BNG gain site. No official bulk "
+            "download exists yet, so this must be supplied manually."
+        ),
+    )
+    parser.add_argument(
+        "--bng-name-column",
+        type=str,
+        default=None,
+        help="Optional BNG site/reference name column override.",
+    )
     return parser.parse_args()
 
 
@@ -74,6 +90,13 @@ def main() -> None:
         output_column="lnrs_name",
         name_column=args.lnrs_name_column,
     )
+    ranked = attach_geography_name(
+        ranked,
+        args.bng_path,
+        join_key="hex_id",
+        output_column="bng_name",
+        name_column=args.bng_name_column,
+    )
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"{args.scenario}_top_{args.top_n}"
@@ -88,6 +111,7 @@ def main() -> None:
     top_columns = [
         "hex_id",
         "lnrs_name",
+        "bng_name",
         args.scenario,
         "cell_area_ratio",
         "undersized_cell_penalty",
@@ -134,6 +158,21 @@ def main() -> None:
                 "## LNRS slice summary",
                 "",
                 lnrs_summary.rename(columns={"lnrs_name": "lnrs"}).round(2).to_string(index=False),
+            ]
+        )
+
+    bng_summary = summarize_named_geography(
+        ranked,
+        name_column="bng_name",
+        score_column=args.scenario,
+    )
+    if not bng_summary.empty:
+        summary.extend(
+            [
+                "",
+                "## BNG gain site slice summary",
+                "",
+                bng_summary.rename(columns={"bng_name": "bng_site"}).round(2).to_string(index=False),
             ]
         )
 

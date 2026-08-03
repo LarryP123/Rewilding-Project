@@ -247,6 +247,33 @@ def _inverse_distance_score(distance: pd.Series) -> pd.Series:
     return score.clip(lower=0, upper=100).astype("Float64")
 
 
+def add_bng_opportunity_score(
+    grid: gpd.GeoDataFrame,
+    bng_sites: gpd.GeoDataFrame,
+    feature_name: str = "bng_opportunity_score_raw",
+    distance_column: str = "distance_to_bng_site_m",
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Score hexes by proximity to registered Biodiversity Gain Sites.
+
+    This is a market-signal feature, not a suitability feature: it reflects
+    where off-site BNG habitat creation is already registered, not where
+    rewilding is ecologically best. It is meant to be combined with the core
+    suitability features, not used on its own.
+    """
+
+    scored = add_distance_to_habitat_feature(
+        grid,
+        bng_sites,
+        feature_name=distance_column,
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+    )
+    scored[feature_name] = _inverse_distance_score(scored[distance_column])
+    return scored
+
+
 def _resolve_numeric_score_column(
     frame: gpd.GeoDataFrame,
     candidates: tuple[str, ...],

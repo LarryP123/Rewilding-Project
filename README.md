@@ -288,6 +288,34 @@ python scripts/summarize_candidate_clusters.py \
   --lnrs-path data/raw/reference/lnrs_boundaries.geojson
 ```
 
+Both export scripts also accept `--bng-path` to flag candidate hexes and zones
+that overlap a registered off-site Biodiversity Gain Site, using the same
+point-in-polygon join as LNRS. There is currently no official bulk download of
+the Biodiversity Gain Site Register (it's a lookup-only public register at
+`environment.data.gov.uk/biodiversity-net-gain`), so `data/raw/reference/bng_gain_sites.geojson`
+must be supplied manually — for example from individual register lookups or a
+third-party aggregator:
+
+```bash
+python scripts/export_top_candidates.py \
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet \
+  --scenario scenario_balanced \
+  --top-n 100 \
+  --bng-path data/raw/reference/bng_gain_sites.geojson
+```
+
+Once a BNG sites file is available, compute a `scenario_bng_aligned` lens that
+combines the core suitability signals with proximity to registered off-site
+gain sites. This reads the canonical scored layer read-only and writes a
+separate augmented file — it does not touch the canonical outputs or the
+national pipeline:
+
+```bash
+python scripts/apply_bng_opportunity_score.py \
+  --scores-path data/interim/mvp_official_boundary_1km_v6/hex_scores.parquet \
+  --bng-path data/raw/reference/bng_gain_sites.geojson
+```
+
 Right now the local-development workflow can use:
 
 - the local `data/interim/corine_subset.parquet` layer for habitat-context features,

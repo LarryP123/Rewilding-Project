@@ -32,6 +32,28 @@ SCENARIO_WEIGHTS = {
 }
 
 
+BNG_SCENARIO_WEIGHTS = {
+    "scenario_bng_aligned": {
+        "restoration_opportunity_score": 0.25,
+        "flood_opportunity_score_raw": 0.10,
+        "peat_opportunity_score_raw": 0.10,
+        "agri_opportunity_score_raw": 0.10,
+        "habitat_mosaic_score": 0.05,
+        "biodiversity_observation_score_raw": 0.15,
+        "bng_opportunity_score_raw": 0.25,
+    },
+}
+"""Opt-in scenario lens combining core suitability with BNG market proximity.
+
+Deliberately kept out of SCENARIO_WEIGHTS: apply_scenarios() is called
+unconditionally inside the core national pipeline (src/pipeline.py), which
+never computes bng_opportunity_score_raw, so merging this in would break
+every existing run. Pass it explicitly via
+apply_scenarios(frame, scenario_weights=BNG_SCENARIO_WEIGHTS) once
+bng_opportunity_score_raw has been added to the frame.
+"""
+
+
 def minmax_scale(series: pd.Series) -> pd.Series:
     """Scale numeric values to a 0-100 range."""
 

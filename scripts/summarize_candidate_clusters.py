@@ -70,6 +70,22 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional LNRS name column override.",
     )
+    parser.add_argument(
+        "--bng-path",
+        type=Path,
+        default=Path("data/raw/reference/bng_gain_sites.geojson"),
+        help=(
+            "Optional Biodiversity Gain Site Register extract used to flag zones "
+            "that overlap a registered off-site BNG gain site. No official bulk "
+            "download exists yet, so this must be supplied manually."
+        ),
+    )
+    parser.add_argument(
+        "--bng-name-column",
+        type=str,
+        default=None,
+        help="Optional BNG site/reference name column override.",
+    )
     return parser.parse_args()
 
 
@@ -141,6 +157,21 @@ def cluster_summary(top_with_clusters: gpd.GeoDataFrame, scenario: str) -> pd.Da
         summary["primary_lnrs_name"] = pd.NA
         summary["lnrs_names"] = pd.NA
         summary["lnrs_count"] = pd.NA
+    bng_summary = dominant_name_by_group(
+        working,
+        group_column="cluster_id",
+        name_column="bng_name",
+        score_column=scenario,
+        primary_output_column="primary_bng_name",
+        list_output_column="bng_names",
+        count_output_column="bng_count",
+    )
+    if not bng_summary.empty:
+        summary = summary.merge(bng_summary, on="cluster_id", how="left")
+    else:
+        summary["primary_bng_name"] = pd.NA
+        summary["bng_names"] = pd.NA
+        summary["bng_count"] = pd.NA
     return summary[
         [
             "cluster_rank",
@@ -149,6 +180,9 @@ def cluster_summary(top_with_clusters: gpd.GeoDataFrame, scenario: str) -> pd.Da
             "primary_lnrs_name",
             "lnrs_names",
             "lnrs_count",
+            "primary_bng_name",
+            "bng_names",
+            "bng_count",
             "scenario_score_max",
             "scenario_score_mean",
             "habitat_share_mean",
@@ -171,6 +205,7 @@ def top_cells_text(top_with_clusters: gpd.GeoDataFrame, scenario: str, cluster_i
         [
             "hex_id",
             "lnrs_name",
+            "bng_name",
             scenario,
             "priority_habitat_share",
             "connectivity_score",
@@ -190,6 +225,13 @@ def main() -> None:
         join_key="hex_id",
         output_column="lnrs_name",
         name_column=args.lnrs_name_column,
+    )
+    top = attach_geography_name(
+        top,
+        args.bng_path,
+        join_key="hex_id",
+        output_column="bng_name",
+        name_column=args.bng_name_column,
     )
     clusters, top_with_clusters = build_clusters(top, args.cluster_distance_m)
 
@@ -236,6 +278,21 @@ def main() -> None:
                 "## LNRS slice summary",
                 "",
                 lnrs_slice_summary.rename(columns={"lnrs_name": "lnrs"}).round(2).to_string(index=False),
+            ]
+        )
+
+    bng_slice_summary = summarize_named_geography(
+        top_with_clusters,
+        name_column="bng_name",
+        score_column=args.scenario,
+    )
+    if not bng_slice_summary.empty:
+        lines.extend(
+            [
+                "",
+                "## BNG gain site slice summary",
+                "",
+                bng_slice_summary.rename(columns={"bng_name": "bng_site"}).round(2).to_string(index=False),
             ]
         )
 
