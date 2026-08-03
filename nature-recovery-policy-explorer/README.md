@@ -2,12 +2,31 @@
 
 ## Overview
 
-A policy scenario explorer for England that compares how different priorities
-change the national pattern of nature recovery opportunity.
+This project compares how different policy priorities reshape the national
+pattern of nature recovery opportunity across England.
 
-The project asks:
+The current build combines a DuckDB + dbt scoring pipeline, publish exports,
+and a working MapLibre interface backed by PMTiles.
 
-How do different policy priorities change which places appear strongest for nature recovery?
+![Explorer overview](./docs/assets/explorer-overview.svg)
+
+## Key Points
+
+- national hex-based comparison across five policy scenarios
+- shared underlying geography, recoloured by active scenario percentile
+- stable-core and contested filters for cross-scenario interpretation
+- local PMTiles delivery for a cleaner long-term map stack
+- selection, hover, and scenario summary panels in the app
+
+## Current Outputs
+
+The present publish layer covers `204,652` hexes across England.
+
+- `6,580` hexes appear in the stable core across all five scenarios
+- `32,429` hexes are contested across scenarios
+- each scenario exposes top-decile, top-1%, best-rank, and rank-spread outputs
+
+Additional notes and headline observations are in [docs/findings.md](./docs/findings.md).
 
 ## Stack
 
@@ -27,11 +46,22 @@ This repo currently includes:
 - cross-scenario comparison model
 - publish exports for app use
 - a working PMTiles layer
-- a MapLibre app with scenario switching, filters, hover, and selection
+- a MapLibre app with scenario switching, filters, hover, selection, and shareable view state
 
-## Main Outputs
+## Repository Structure
 
-Analytical tables:
+Core project files:
+
+- `dbt/models/staging/stg_hex_base.sql`
+- `dbt/models/marts/fct_scenario_scores.sql`
+- `dbt/models/marts/fct_scenario_comparison.sql`
+- `dbt/models/exports/app_hexes.sql`
+- `dbt/models/exports/scenario_summary.sql`
+- `scripts/export_publish_assets.py`
+- `scripts/build_pmtiles.sh`
+- `app/maplibre/`
+
+Analytical tables produced by the models:
 
 - `hex_base`
 - `scenario_scores`
@@ -39,7 +69,7 @@ Analytical tables:
 - `app_hexes`
 - `scenario_summary`
 
-Publish assets:
+App-facing publish assets generated locally:
 
 - `data/publish/app_hexes.parquet`
 - `data/publish/app_hexes_tiles.fgb`
@@ -47,12 +77,7 @@ Publish assets:
 - `data/publish/scenario_summary.parquet`
 - `data/publish/scenario_summary.json`
 - `data/publish/app_overview.json`
-- `data/publish/app_hexes_points.json`
 - `data/publish/tile_schema.json`
-
-Application:
-
-- `app/maplibre/`
 
 ## Rebuild Workflow
 
@@ -79,9 +104,7 @@ This writes the app-facing files into `data/publish/`.
 ./scripts/build_pmtiles.sh
 ```
 
-This builds:
-
-- `data/publish/policy_hexes.pmtiles`
+This builds `data/publish/policy_hexes.pmtiles`.
 
 ### 4. Serve locally
 
@@ -96,33 +119,20 @@ Then open:
 
 - `http://localhost:8003/nature-recovery-policy-explorer/app/maplibre/`
 
-## Key Files
+## Interface
 
-Data and build:
+The current MapLibre interface supports:
 
-- `dbt/models/staging/stg_hex_base.sql`
-- `dbt/models/marts/fct_scenario_scores.sql`
-- `dbt/models/marts/fct_scenario_comparison.sql`
-- `dbt/models/exports/app_hexes.sql`
-- `dbt/models/exports/scenario_summary.sql`
-- `scripts/export_publish_assets.py`
-- `scripts/build_pmtiles.sh`
+- five scenario switches
+- stable-core and contested filters
+- hover inspection
+- click selection with per-hex details
+- a copyable URL state for scenario and filter settings
 
-Application:
-
-- `app/maplibre/index.html`
-- `app/maplibre/styles.css`
-- `app/maplibre/main.js`
-
-## What The App Does
-
-- switches between five policy scenarios
-- recolors the same national hex grid by scenario percentile
-- filters stable-core and contested areas
-- supports hover inspection
-- supports click selection with sidebar detail
+![Scenario summary](./docs/assets/scenario-summary.svg)
 
 ## Notes
 
-- `policy_hexes_z9.pmtiles` is an earlier tileset kept during development
-- `app_hexes_tiles_4326.fgb` is an intermediate reprojection artifact used during tile building
+- publish artifacts in `data/publish/` are generated locally and are ignored by Git
+- backup virtual environments are also ignored locally
+- `policy_hexes_z9.pmtiles` and `app_hexes_tiles_4326.fgb` remain useful as development artifacts, but they are not part of the tracked repo surface

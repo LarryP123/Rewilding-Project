@@ -1,0 +1,28 @@
+<svg width="1440" height="640" viewBox="0 0 1440 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="640" fill="#0C130F"/>
+  <rect x="68" y="66" width="1304" height="508" rx="30" fill="#121B16" stroke="#324239"/>
+  <text x="112" y="136" fill="#9CBF75" font-family="Menlo, monospace" font-size="18" letter-spacing="2.4">SCENARIO SUMMARY</text>
+  <text x="112" y="188" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="42" font-weight="700">Five policy lenses on one national grid</text>
+  <text x="112" y="228" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="24">Stable core and contested counts stay visible while scenario priorities change the distribution.</text>
+  <rect x="112" y="282" width="220" height="214" rx="22" fill="#17211B" stroke="#33443A"/>
+  <text x="138" y="328" fill="#B7C4B5" font-family="Menlo, monospace" font-size="17" letter-spacing="2">HEXES</text>
+  <text x="138" y="394" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="56" font-weight="700">204,652</text>
+  <rect x="356" y="282" width="220" height="214" rx="22" fill="#17211B" stroke="#33443A"/>
+  <text x="382" y="328" fill="#B7C4B5" font-family="Menlo, monospace" font-size="17" letter-spacing="2">STABLE CORE</text>
+  <text x="382" y="394" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="56" font-weight="700">6,580</text>
+  <rect x="600" y="282" width="220" height="214" rx="22" fill="#17211B" stroke="#33443A"/>
+  <text x="626" y="328" fill="#B7C4B5" font-family="Menlo, monospace" font-size="17" letter-spacing="2">CONTESTED</text>
+  <text x="626" y="394" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="56" font-weight="700">32,429</text>
+  <rect x="844" y="282" width="472" height="214" rx="22" fill="#17211B" stroke="#33443A"/>
+  <text x="874" y="328" fill="#B7C4B5" font-family="Menlo, monospace" font-size="17" letter-spacing="2">SCENARIOS</text>
+  <rect x="878" y="357" width="126" height="18" rx="9" fill="#D3E7B8"/>
+  <text x="1024" y="371" fill="#E6ECE0" font-family="Iowan Old Style, Palatino, serif" font-size="22">Balanced Strategy</text>
+  <rect x="878" y="392" width="106" height="18" rx="9" fill="#B9D59A"/>
+  <text x="1024" y="406" fill="#E6ECE0" font-family="Iowan Old Style, Palatino, serif" font-size="22">Nature Recovery</text>
+  <rect x="878" y="427" width="143" height="18" rx="9" fill="#8AAA7D"/>
+  <text x="1041" y="441" fill="#E6ECE0" font-family="Iowan Old Style, Palatino, serif" font-size="22">Lower Conflict</text>
+  <rect x="878" y="462" width="96" height="18" rx="9" fill="#637C5C"/>
+  <text x="994" y="476" fill="#E6ECE0" font-family="Iowan Old Style, Palatino, serif" font-size="22">Flood Resilience</text>
+  <rect x="878" y="497" width="116" height="18" rx="9" fill="#435E47"/>
+  <text x="1014" y="511" fill="#E6ECE0" font-family="Iowan Old Style, Palatino, serif" font-size="22">Carbon Restoration</text>
+</svg>

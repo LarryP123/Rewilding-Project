@@ -1,0 +1,39 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#0B120E"/>
+  <rect x="44" y="44" width="1352" height="812" rx="28" fill="#101814" stroke="#314236"/>
+  <rect x="44" y="44" width="1352" height="54" rx="28" fill="#131D17"/>
+  <circle cx="84" cy="71" r="8" fill="#B6C7AB" fill-opacity="0.45"/>
+  <circle cx="112" cy="71" r="8" fill="#B6C7AB" fill-opacity="0.28"/>
+  <circle cx="140" cy="71" r="8" fill="#B6C7AB" fill-opacity="0.2"/>
+  <rect x="78" y="130" width="334" height="640" rx="24" fill="#152019" stroke="#33443A"/>
+  <text x="106" y="177" fill="#9CBF75" font-family="Menlo, monospace" font-size="18" letter-spacing="2.5">ENGLAND</text>
+  <text x="106" y="220" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="46" font-weight="700">Nature Recovery</text>
+  <text x="106" y="264" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="46" font-weight="700">Policy Explorer</text>
+  <text x="106" y="318" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="23">Five scenario lenses using the same national</text>
+  <text x="106" y="348" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="23">hex grid and a local PMTiles map surface.</text>
+  <rect x="104" y="396" width="282" height="62" rx="16" fill="#263323" stroke="#64795B"/>
+  <text x="128" y="435" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="28">Balanced Strategy</text>
+  <rect x="104" y="474" width="282" height="62" rx="16" fill="#1A241D" stroke="#33443A"/>
+  <text x="128" y="513" fill="#E2E7DD" font-family="Iowan Old Style, Palatino, serif" font-size="28">Carbon Restoration</text>
+  <rect x="104" y="552" width="282" height="62" rx="16" fill="#1A241D" stroke="#33443A"/>
+  <text x="128" y="591" fill="#E2E7DD" font-family="Iowan Old Style, Palatino, serif" font-size="28">Flood Resilience</text>
+  <rect x="458" y="130" width="892" height="98" rx="24" fill="#152019" stroke="#33443A"/>
+  <text x="494" y="177" fill="#9CBF75" font-family="Menlo, monospace" font-size="18" letter-spacing="2.5">CURRENT SCENARIO</text>
+  <text x="494" y="212" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="34" font-weight="700">Balanced Strategy</text>
+  <text x="1126" y="194" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="20">Lower percentile</text>
+  <circle cx="1100" cy="188" r="8" fill="#314D3A"/>
+  <text x="1126" y="224" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="20">Higher percentile</text>
+  <circle cx="1100" cy="218" r="8" fill="#D3E7B8"/>
+  <rect x="458" y="250" width="892" height="520" rx="24" fill="#121B16" stroke="#2D3E34"/>
+  <path d="M861 334L884 361L876 432L919 479L909 557L954 637L996 674L1045 705L1098 708L1134 671L1135 617L1105 589L1111 538L1068 487L1036 448L1026 403L989 376L956 355L933 337L907 320L884 320L861 334Z" fill="#D3E7B8" fill-opacity="0.92"/>
+  <path d="M861 334L884 361L876 432L919 479L909 557L954 637L996 674L1045 705L1098 708L1134 671L1135 617L1105 589L1111 538L1068 487L1036 448L1026 403L989 376L956 355L933 337L907 320L884 320L861 334Z" stroke="#EEF4E6" stroke-opacity="0.15"/>
+  <path d="M760 600C785 561 822 548 846 524C872 498 875 451 846 428C817 406 781 422 766 456C747 500 741 549 760 600Z" fill="#8AAA7D" fill-opacity="0.9"/>
+  <path d="M734 394C751 380 779 378 792 397C807 420 798 447 780 462C763 476 738 473 729 452C720 432 719 408 734 394Z" fill="#637C5C" fill-opacity="0.92"/>
+  <path d="M694 512C709 502 731 502 743 516C757 531 756 557 742 572C727 588 702 590 687 577C672 564 678 522 694 512Z" fill="#435E47" fill-opacity="0.92"/>
+  <rect x="482" y="274" width="164" height="42" rx="21" fill="#0E1511" stroke="#314236"/>
+  <text x="513" y="301" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="20">Stable core only</text>
+  <rect x="482" y="324" width="154" height="42" rx="21" fill="#0E1511" stroke="#314236"/>
+  <text x="513" y="351" fill="#F1F2EA" font-family="Iowan Old Style, Palatino, serif" font-size="20">Contested only</text>
+  <rect x="458" y="790" width="420" height="42" rx="21" fill="#152019" stroke="#314236"/>
+  <text x="488" y="817" fill="#B7C4B5" font-family="Iowan Old Style, Palatino, serif" font-size="20">Map view with scenario switching, filters, hover, and selection</text>
+</svg>

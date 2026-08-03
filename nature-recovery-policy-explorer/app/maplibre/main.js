@@ -35,6 +35,7 @@ const elements = {
   stableToggle: document.querySelector("#stable-toggle"),
   contestedToggle: document.querySelector("#contested-toggle"),
   clearSelection: document.querySelector("#clear-selection"),
+  copyView: document.querySelector("#copy-view"),
   openMethods: document.querySelector("#open-methods"),
   closeMethods: document.querySelector("#close-methods"),
   methodsModal: document.querySelector("#methods-modal"),
@@ -65,6 +66,7 @@ function renderScenarioButtons() {
       updateMapStyle();
       renderScenarioSummaryPanel();
       renderSelectionPanel();
+      syncUrlState();
     });
   });
 }
@@ -126,6 +128,42 @@ function updateMapStyle() {
         : ["==", ["get", "hex_id"], ""],
     );
   }
+}
+
+function buildUrlState() {
+  const params = new URLSearchParams();
+  params.set("scenario", state.currentScenarioId);
+
+  if (state.showStableOnly) {
+    params.set("stable", "1");
+  }
+
+  if (state.showContestedOnly) {
+    params.set("contested", "1");
+  }
+
+  return params;
+}
+
+function syncUrlState() {
+  const url = new URL(window.location.href);
+  url.search = buildUrlState().toString();
+  window.history.replaceState({}, "", url);
+}
+
+function applyUrlState() {
+  const params = new URLSearchParams(window.location.search);
+  const scenarioId = params.get("scenario");
+
+  if (scenarioId && scenarios.some(([id]) => id === scenarioId)) {
+    state.currentScenarioId = scenarioId;
+  }
+
+  state.showStableOnly = params.get("stable") === "1";
+  state.showContestedOnly = params.get("contested") === "1";
+
+  elements.stableToggle.checked = state.showStableOnly;
+  elements.contestedToggle.checked = state.showContestedOnly;
 }
 
 function formatNumber(value) {
@@ -251,6 +289,21 @@ function renderSelectionPanel() {
 
 function hideHoverTooltip() {
   elements.mapHoverTooltip.hidden = true;
+}
+
+async function copyCurrentView() {
+  const shareUrl = new URL(window.location.href);
+  shareUrl.search = buildUrlState().toString();
+
+  try {
+    await navigator.clipboard.writeText(shareUrl.toString());
+    elements.mapStatus.textContent =
+      "Current scenario and filter state copied to the clipboard.";
+  } catch (error) {
+    console.error(error);
+    elements.mapStatus.textContent =
+      "Clipboard access was unavailable. Copy the page URL directly instead.";
+  }
 }
 
 function showHoverTooltip(event, feature) {
@@ -432,16 +485,21 @@ function bindToggles() {
     state.showStableOnly = elements.stableToggle.checked;
     updateMapStyle();
     renderScenarioSummaryPanel();
+    syncUrlState();
   });
   elements.contestedToggle.addEventListener("change", () => {
     state.showContestedOnly = elements.contestedToggle.checked;
     updateMapStyle();
     renderScenarioSummaryPanel();
+    syncUrlState();
   });
   elements.clearSelection.addEventListener("click", () => {
     state.selectedFeature = null;
     renderSelectionPanel();
     updateMapStyle();
+  });
+  elements.copyView.addEventListener("click", () => {
+    copyCurrentView();
   });
   elements.openMethods.addEventListener("click", () => {
     elements.methodsModal.showModal();
@@ -452,6 +510,7 @@ function bindToggles() {
 }
 
 async function init() {
+  applyUrlState();
   renderScenarioButtons();
   updateScenarioTitle();
   renderScenarioSummaryPanel();
@@ -473,6 +532,7 @@ async function init() {
   }
 
   renderScenarioSummaryPanel();
+  syncUrlState();
 
   initMap();
 }

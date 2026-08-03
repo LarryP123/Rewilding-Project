@@ -73,7 +73,7 @@ h2 {
   border: 1px solid var(--line);
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.02));
-  margin-top: 10px;
+  margin-top: 11px;
 }
 
 .panel-title-row {
@@ -271,6 +271,7 @@ h2 {
 
 .map-panel {
   position: relative;
+  min-height: 100vh;
 }
 
 .map {
@@ -314,6 +315,13 @@ h2 {
   align-content: start;
 }
 
+.toolbar-button-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .toolbar-button {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.04);
@@ -324,11 +332,16 @@ h2 {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
 }
 
 .toolbar-button:hover {
   border-color: rgba(166, 200, 127, 0.34);
   background: rgba(166, 200, 127, 0.08);
+  transform: translateY(-1px);
 }
 
 .legend {
@@ -442,4 +455,32 @@ h2 {
   margin: 0;
   color: var(--muted);
   line-height: 1.6;
+}
+
+@media (max-width: 1080px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .map-panel {
+    min-height: 72vh;
+  }
+
+  .map-toolbar {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .toolbar-actions {
+    justify-items: start;
+  }
+
+  .toolbar-button-row {
+    justify-content: flex-start;
+  }
 }
