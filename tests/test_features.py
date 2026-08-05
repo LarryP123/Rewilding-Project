@@ -12,6 +12,7 @@ from src.features import (
     add_mammal_observation_feature,
     add_observation_feature,
     add_peat_opportunity_feature,
+    add_rewilding_network_proximity_score,
     add_weighted_area_feature,
 )
 
@@ -141,6 +142,25 @@ def test_add_bng_opportunity_score_reprojects_mismatched_crs(
     # would be off by many orders of magnitude more than this.
     for hex_id in expected_distances.index:
         assert actual_distances[hex_id] == pytest.approx(expected_distances[hex_id], abs=500.0)
+
+
+def test_add_rewilding_network_proximity_score_favors_hexes_near_real_projects(
+    grid: gpd.GeoDataFrame,
+) -> None:
+    projects = gpd.GeoDataFrame(
+        {"geometry": [Point(5, 5)]},
+        crs=grid.crs,
+    )
+
+    result = add_rewilding_network_proximity_score(grid, projects, tile_size_m=1_000)
+    actual = result.set_index("hex_id")
+
+    assert actual.loc["hex_a", "distance_to_rewilding_project_m"] == pytest.approx(0.0)
+    assert actual.loc["hex_a", "rewilding_network_proximity_score_raw"] == pytest.approx(100.0)
+    assert (
+        actual.loc["hex_b", "rewilding_network_proximity_score_raw"]
+        < actual.loc["hex_a", "rewilding_network_proximity_score_raw"]
+    )
 
 
 def test_add_weighted_area_feature_respects_polygon_weights(grid: gpd.GeoDataFrame) -> None:

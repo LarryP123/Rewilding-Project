@@ -65,6 +65,11 @@
         <h3>Near a registered BNG site</h3>
         <p>Only 40% of the balanced top-100 cells sit within 10km of a registered Biodiversity Gain Site, versus 45% nationally — the BNG market is not yet concentrated on this shortlist.</p>
       </article>
+      <article class="card">
+        <span class="card-number">1.5x</span>
+        <h3>Beats chance under low-conflict</h3>
+        <p>Real Rewilding Network sites are 1.5x more likely than chance to fall in the model's own top decile under the low-conflict lens — but land almost exactly at chance under nature-first.</p>
+      </article>
     </section>
 
     <section class="content-panel">
@@ -161,6 +166,14 @@
       <p>The same check was repeated across all three scenario lenses, on the theory that low-conflict &mdash; which favours easy, lower-grade farmland &mdash; might line up better with real gain sites than nature-first. It does not; if anything, the opposite. Nature-first has the least-weak relationship (r = 0.14, 41.0% of its top 100 within 10km), balanced is close behind (r = 0.10, 40.0%), and low-conflict has essentially none (r = &minus;0.01, 35.0%) &mdash; the weakest of the three despite being the lens built to favour lower-friction agricultural land. That rules out land-quality logic as the explanation.</p>
       <p>So what does explain gain-site placement? Rather than just speculating, distance from each hex to the nearest CORINE urban or industrial polygon was tested as a proxy for where development &mdash; and therefore offset demand &mdash; already exists. That proxy explains BNG proximity roughly twice as well as any scenario lens does (r = 0.27 vs 0.14 at best), and it holds at the site level too: registered BNG sites sit consistently closer to urban/industrial land than the national baseline at every distance checked &mdash; 73.7% of sites are within 2km of urban land, against 63.0% of all hexes nationally (mean 1.59km vs 2.02km). The effect is real but modest, not overwhelming: England's urban/industrial land is already dense enough that the national baseline is high to begin with.</p>
       <p>That is a useful result, not a disappointing one. It suggests the current BNG market is placed more by proximity to existing development than by ecological or agricultural strategy, under any of the scenario framings tested here. The register is also young &mdash; mandatory BNG only began in February 2024 &mdash; so this is worth rechecking as it grows, and <code>scripts/analyze_bng_alignment.py</code> writes a timestamped record each run for exactly that. For now, this project answers the ecological screening question; it does not claim the two markets are already aligned.</p>
+    </section>
+
+    <section class="content-panel">
+      <h2>Validating against real rewilding sites, not a policy market</h2>
+      <p>The BNG check compares the model to a policy market. A different, arguably more direct question is whether the model rediscovers places rewilding practitioners have already chosen &mdash; a genuine external validation, since these locations were never used to build or weight the model. The Rewilding Network, Rewilding Britain's public directory of active projects, lists 89 sites across Britain. After excluding 3 the network deliberately obscures the location of and filtering to England, 64 real, precisely-located sites remain &mdash; a smaller sample than the BNG register, worth reading with that in mind.</p>
+      <p>The top-100 result points the opposite way from BNG: the model's top candidates are closer to real rewilding sites than the national baseline, by a wide margin. Nationally only 3.6% of hexes sit within 5km of a real site; the balanced top 100 reaches 13.0% &mdash; over three times the baseline rate.</p>
+      <p>The sharper test is per-site: for the hex nearest each real project, what percentile does it fall at nationally under each scenario? A model with no relationship to real siting would average the 50th percentile by construction. Nature-first lands almost exactly at chance (mean percentile 50.1, 9.4% in the model's own top decile). Balanced shows a modest edge (53.5, 10.9%). Low-conflict shows the clearest one: real sites are 1.5x more likely than chance to fall in the model's top decile under that lens specifically (mean percentile 60.5, 15.6% in the top decile).</p>
+      <p>That lines up with the BNG finding rather than contradicting it. Both checks say the same thing from different data: real-world siting, whether a commercial BNG transaction or a genuine grassroots rewilding project, tracks practical and land-availability factors more than pure ecological optimisation. Nature-first is the model's best ecological argument and its weakest real-world predictor in both checks. Reproduce this with <code>scripts/analyze_rewilding_network_validation.py</code>.</p>
     </section>
 
     <section class="content-panel">

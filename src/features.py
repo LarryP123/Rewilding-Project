@@ -250,6 +250,37 @@ def _inverse_distance_score(distance: pd.Series) -> pd.Series:
     return score.clip(lower=0, upper=100).astype("Float64")
 
 
+def add_point_proximity_score(
+    grid: gpd.GeoDataFrame,
+    points: gpd.GeoDataFrame,
+    feature_name: str,
+    distance_column: str,
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Score hexes by proximity to an arbitrary point source (0-100, nearer is higher).
+
+    points is reprojected to the grid's CRS if needed. Real-world point
+    exports are commonly WGS84 (lat/lon); add_distance_to_habitat_feature
+    reprojects the grid to match the point source instead of the other way
+    round, which would silently compute distances in degrees rather than
+    metres if points were left ungeoreferenced to the grid.
+    """
+
+    if points.crs is not None and grid.crs is not None and points.crs != grid.crs:
+        points = points.to_crs(grid.crs)
+
+    scored = add_distance_to_habitat_feature(
+        grid,
+        points,
+        feature_name=distance_column,
+        tile_size_m=tile_size_m,
+        verbose=verbose,
+    )
+    scored[feature_name] = _inverse_distance_score(scored[distance_column])
+    return scored
+
+
 def add_bng_opportunity_score(
     grid: gpd.GeoDataFrame,
     bng_sites: gpd.GeoDataFrame,
@@ -264,26 +295,29 @@ def add_bng_opportunity_score(
     where off-site BNG habitat creation is already registered, not where
     rewilding is ecologically best. It is meant to be combined with the core
     suitability features, not used on its own.
-
-    bng_sites is reprojected to the grid's CRS if needed. Real-world BNG
-    site exports are commonly WGS84 (lat/lon); add_distance_to_habitat_feature
-    reprojects the grid to match the habitat source instead of the other way
-    round, which would silently compute distances in degrees rather than
-    metres if bng_sites were left ungeoreferenced to the grid.
     """
 
-    if bng_sites.crs is not None and grid.crs is not None and bng_sites.crs != grid.crs:
-        bng_sites = bng_sites.to_crs(grid.crs)
+    return add_point_proximity_score(grid, bng_sites, feature_name, distance_column, tile_size_m, verbose)
 
-    scored = add_distance_to_habitat_feature(
-        grid,
-        bng_sites,
-        feature_name=distance_column,
-        tile_size_m=tile_size_m,
-        verbose=verbose,
-    )
-    scored[feature_name] = _inverse_distance_score(scored[distance_column])
-    return scored
+
+def add_rewilding_network_proximity_score(
+    grid: gpd.GeoDataFrame,
+    project_sites: gpd.GeoDataFrame,
+    feature_name: str = "rewilding_network_proximity_score_raw",
+    distance_column: str = "distance_to_rewilding_project_m",
+    tile_size_m: float = 50_000,
+    verbose: bool = False,
+) -> gpd.GeoDataFrame:
+    """Score hexes by proximity to real, independently-chosen Rewilding Network sites.
+
+    This is a validation feature, not a scoring input: these locations were
+    never used to build or weight the model, so checking whether the model's
+    own opportunity scores skew toward real rewilding sites is a genuine
+    held-out check of whether the model rediscovers places practitioners
+    have already chosen, not a circular one.
+    """
+
+    return add_point_proximity_score(grid, project_sites, feature_name, distance_column, tile_size_m, verbose)
 
 
 def _resolve_numeric_score_column(

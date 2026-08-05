@@ -1,0 +1,57 @@
+{
+  "timestamp_utc": "2026-08-03T15:45:03.862338+00:00",
+  "rewilding_network_total_sites_britain": 89,
+  "rewilding_network_hidden_location_sites": 3,
+  "rewilding_network_england_sites_used": 64,
+  "hex_count": 204703,
+  "national_baseline": {
+    "within_5km_pct": 3.6,
+    "within_10km_pct": 13.2,
+    "within_20km_pct": 42.6
+  },
+  "scenario_correlations": {
+    "scenario_nature_first": -0.005,
+    "scenario_balanced": 0.027,
+    "scenario_low_conflict": 0.084
+  },
+  "scenario_top100": {
+    "scenario_nature_first": {
+      "within_5km_pct": 13.0,
+      "within_10km_pct": 35.0,
+      "within_20km_pct": 78.0
+    },
+    "scenario_balanced": {
+      "within_5km_pct": 13.0,
+      "within_10km_pct": 30.0,
+      "within_20km_pct": 76.0
+    },
+    "scenario_low_conflict": {
+      "within_5km_pct": 10.0,
+      "within_10km_pct": 21.0,
+      "within_20km_pct": 75.0
+    }
+  },
+  "nearest_hex_percentiles": {
+    "scenario_nature_first": {
+      "mean_percentile": 50.1,
+      "median_percentile": 52.3,
+      "pct_in_top_10_percent": 9.4,
+      "pct_in_top_25_percent": 32.8,
+      "pct_below_median": 46.9
+    },
+    "scenario_balanced": {
+      "mean_percentile": 53.5,
+      "median_percentile": 65.6,
+      "pct_in_top_10_percent": 10.9,
+      "pct_in_top_25_percent": 37.5,
+      "pct_below_median": 40.6
+    },
+    "scenario_low_conflict": {
+      "mean_percentile": 60.5,
+      "median_percentile": 69.8,
+      "pct_in_top_10_percent": 15.6,
+      "pct_in_top_25_percent": 40.6,
+      "pct_below_median": 29.7
+    }
+  }
+}

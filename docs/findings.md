@@ -58,7 +58,29 @@ That is a useful finding, not a null result: it suggests the current BNG market 
 
 Reproduce the core comparison with `python scripts/apply_bng_opportunity_score.py`.
 
-## 6. The strongest public claim is screening, not recommendation
+## 6. Real rewilding sites beat chance under low-conflict, but not under nature-first
+
+The BNG check compares the model to a policy market. A different, arguably more direct question is whether the model rediscovers places rewilding practitioners have already chosen — not a market signal, but a genuine external validation, since these locations were never used to build or weight the model.
+
+The Rewilding Network (Rewilding Britain's public directory of active rewilding projects) lists `89` sites across Britain. After excluding `3` the network deliberately obscures the location of and filtering to England, `64` real, precisely-located sites remain — a smaller sample than the BNG register, and worth reading with that in mind.
+
+The top-100 result points the opposite way from BNG: the model's top candidates *are* closer to real rewilding sites than the national baseline, by a wide margin. Nationally only `3.6%` of hexes sit within 5km of a real site; the balanced top 100 reaches `13.0%` — over three times the baseline rate.
+
+The sharper test is per-site: for the hex nearest each real project, what percentile does it fall at nationally under each scenario? A model with no relationship to real siting would average the 50th percentile by construction.
+
+| Scenario | Mean percentile of nearest hex | Share in the model's top decile |
+| --- | --- | --- |
+| Nature-first | `50.1` | `9.4%` |
+| Balanced | `53.5` | `10.9%` |
+| Low-conflict | `60.5` | `15.6%` |
+
+Nature-first lands almost exactly at chance — the purely ecological lens shows no edge at all. Low-conflict shows the clearest one: real sites are `1.5x` more likely than chance to fall in the model's own top decile under that lens specifically.
+
+That lines up with the BNG finding rather than contradicting it. Both checks say the same thing from different data: real-world siting, whether a commercial BNG transaction or a genuine grassroots rewilding project, tracks practical and land-availability factors more than pure ecological optimisation. Nature-first is the model's best ecological argument and its weakest real-world predictor in both checks.
+
+Reproduce this with `python scripts/analyze_rewilding_network_validation.py`.
+
+## 7. The strongest public claim is screening, not recommendation
 
 The project is strongest when framed as a transparent spatial screening workflow. It identifies places worth closer review under different objectives, while explicitly avoiding claims about final site selection, predicted ecological outcomes, ownership, or delivery feasibility.
 
@@ -72,3 +94,4 @@ That makes it suitable as a decision-support prototype and portfolio project: it
 - Visual model: `docs/visual_model.md`
 - Explorer app: `outputs/app/rewilding_opportunity_explorer.html`
 - BNG market-proximity script: `scripts/apply_bng_opportunity_score.py`
+- Rewilding Network validation script: `scripts/analyze_rewilding_network_validation.py`

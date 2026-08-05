@@ -347,6 +347,70 @@ project with a graduated choropleth on `scenario_balanced` and the BNG sites
 styled as a separate point layer, ready to inspect, restyle, or lay out a
 print composition from directly in QGIS.
 
+### Validating against real rewilding sites
+
+The BNG checks above compare the model to a policy market. A separate check
+compares it to real, independently-chosen rewilding projects instead — the
+[Rewilding Network](https://www.rewildingbritain.org.uk/rewilding-network/projects)
+directory, which was never used to build or weight the model, so this is a
+genuine held-out validation:
+
+```bash
+curl -s "https://www.rewildingbritain.org.uk/json/rn-all?section=memberProjects" \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); print(json.dumps({'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[p['lng'],p['lat']]},'properties':{'id':p['id'],'entryId':p['entryId'],'hideExactLocation':p.get('hideExactLocation',False)}} for p in d]}))" \
+  > data/raw/reference/rewilding_network_projects.geojson
+
+python scripts/analyze_rewilding_network_validation.py
+```
+
+This filters to England, excludes sites the network deliberately obscures
+the location of, and reports (per scenario) how much closer the model's top
+100 candidates sit to real rewilding sites than the national baseline, plus
+the percentile the nearest hex to each real site falls at nationally — the
+core validation question of whether the model beats chance at rediscovering
+places practitioners have already chosen.
+
+Build the equivalent QGIS project for this validation (defaults to the
+`low_conflict` scenario, the lens where real sites beat chance most clearly):
+
+```bash
+python scripts/build_rewilding_network_qgis_project.py
+open -a QGIS outputs/qgis/rewilding_network_validation.qgs
+```
+
+### Rendering a finished map image
+
+Both QGIS projects above can also be rendered headlessly to a finished PNG
+(title, legend, scale bar, north arrow) without opening the QGIS GUI, using
+QGIS's own `qgis_process` CLI plus a small compositing script. This is how
+`outputs/qgis/bng_alignment_map.png` and `outputs/qgis/rewilding_network_map.png`
+were produced. For the BNG map (swap in `rewilding_network_validation.qgs` /
+`compose_rewilding_network_map.py` for the other one):
+
+```bash
+PROJ_DATA=/Applications/QGIS.app/Contents/Resources/qgis/proj \
+GDAL_DATA=/Applications/QGIS.app/Contents/Resources/gdal \
+/Applications/QGIS.app/Contents/MacOS/qgis_process run native:rasterize \
+  --PROJECT_PATH="$(pwd)/outputs/qgis/bng_alignment.qgs" \
+  --EXTENT="82607,655526,5553,657532" \
+  --TILE_SIZE=4000 \
+  --MAP_UNITS_PER_PIXEL=200 \
+  --MAKE_BACKGROUND_TRANSPARENT=false \
+  --OUTPUT="$(pwd)/outputs/qgis/_render.tif"
+
+/Applications/QGIS.app/Contents/MacOS/gdal_translate -projwin 82607 657532 655526 5553 \
+  outputs/qgis/_render.tif outputs/qgis/_render_cropped.tif
+/Applications/QGIS.app/Contents/MacOS/gdal_translate -of PNG \
+  outputs/qgis/_render_cropped.tif outputs/qgis/bng_alignment_cropped.png
+rm -f outputs/qgis/_render.tif outputs/qgis/_render_cropped.tif outputs/qgis/*.aux.xml
+
+python3 scripts/compose_bng_map.py
+```
+
+Note the `TILE_SIZE` must exceed the extent's pixel dimensions at the chosen
+resolution (here `~2865x3260` at `200` m/pixel) or `native:rasterize` pads
+the canvas to a second tile and doubles the output size unnecessarily.
+
 Right now the local-development workflow can use:
 
 - the local `data/interim/corine_subset.parquet` layer for habitat-context features,

@@ -1,0 +1,248 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis projectname="Rewilding Network Validation" version="3.44.12-Solothurn">
+  <homePath path=""/>
+  <title>Rewilding Opportunity vs Real Rewilding Network Sites</title>
+  <projectCrs>
+    <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["OSGB36 / British National Grid",BASEGEOGCRS["OSGB36",DATUM["Ordnance Survey of Great Britain 1936",ELLIPSOID["Airy 1830",6377563.396,299.3249646,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4277]],CONVERSION["British National Grid",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",49,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-2,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996012717,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",400000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",-100000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["United Kingdom (UK)"],BBOX[49.75,-9.01,61.01,2.01]],ID["EPSG",27700]]</wkt>
+          <proj4>+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs</proj4>
+          <srsid>2429</srsid>
+          <srid>27700</srid>
+          <authid>EPSG:27700</authid>
+          <description>OSGB36 / British National Grid</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7001</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+  </projectCrs>
+  <layer-tree-group>
+    <customproperties/>
+    <layer-tree-layer id="rewilding_projects_f0d134bf" name="Real Rewilding Network Sites" source="/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=rewilding_projects" providerKey="ogr" checked="Qt::Checked" expanded="1"/>
+    <layer-tree-layer id="hex_scores_1fe4ed5a" name="Rewilding Opportunity (scenario_low_conflict)" source="/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=hex_scores" providerKey="ogr" checked="Qt::Checked" expanded="1"/>
+    <layer-tree-layer id="england_boundary_4253c2fc" name="England Boundary" source="/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=england_boundary" providerKey="ogr" checked="Qt::Checked" expanded="1"/>
+  </layer-tree-group>
+  <layerorder>
+    <layer id="rewilding_projects_f0d134bf"/>
+    <layer id="hex_scores_1fe4ed5a"/>
+    <layer id="england_boundary_4253c2fc"/>
+  </layerorder>
+  <projectlayers>
+    <maplayer type="vector" hasScaleBasedVisibilityFlag="0" geometry="Polygon">
+      <extent>
+        <xmin>82607.3653326967</xmin>
+        <ymin>5553.7617113465385</ymin>
+        <xmax>655526.292416711</xmax>
+        <ymax>657532.8774217794</ymax>
+      </extent>
+      <id>hex_scores_1fe4ed5a</id>
+      <datasource>/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=hex_scores</datasource>
+      <layername>Rewilding Opportunity (scenario_low_conflict)</layername>
+      <srs>
+        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["OSGB36 / British National Grid",BASEGEOGCRS["OSGB36",DATUM["Ordnance Survey of Great Britain 1936",ELLIPSOID["Airy 1830",6377563.396,299.3249646,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4277]],CONVERSION["British National Grid",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",49,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-2,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996012717,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",400000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",-100000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["United Kingdom (UK)"],BBOX[49.75,-9.01,61.01,2.01]],ID["EPSG",27700]]</wkt>
+          <proj4>+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs</proj4>
+          <srsid>2429</srsid>
+          <srid>27700</srid>
+          <authid>EPSG:27700</authid>
+          <description>OSGB36 / British National Grid</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7001</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <provider encoding="UTF-8">ogr</provider>
+      <renderer-v2 type="graduatedSymbol" symbollevels="0" forceraster="0" attr="scenario_low_conflict" graduatedMethod="GraduatedColor" enableorderby="0">
+        <ranges>
+          <range lower="0.0" upper="28.97" label="0.0 - 29.0" render="true" symbol="0"/>
+          <range lower="28.97" upper="39.12" label="29.0 - 39.1" render="true" symbol="1"/>
+          <range lower="39.12" upper="41.56" label="39.1 - 41.6" render="true" symbol="2"/>
+          <range lower="41.56" upper="45.91" label="41.6 - 45.9" render="true" symbol="3"/>
+          <range lower="45.91" upper="72.23" label="45.9 - 72.2" render="true" symbol="4"/>
+        </ranges>
+        <symbols>
+        <symbol type="fill" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="247,252,245,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        <symbol type="fill" name="1" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="199,233,192,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        <symbol type="fill" name="2" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="116,196,118,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        <symbol type="fill" name="3" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="49,163,84,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        <symbol type="fill" name="4" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="0,109,44,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        </symbols>
+        <source-symbol>
+        <symbol type="fill" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="200,200,200,255"/>
+              <Option type="QString" name="outline_color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        </source-symbol>
+      </renderer-v2>
+
+    </maplayer>
+    <maplayer type="vector" hasScaleBasedVisibilityFlag="0" geometry="Polygon">
+      <extent>
+        <xmin>82607.3653326967</xmin>
+        <ymin>5553.7617113465385</ymin>
+        <xmax>655526.292416711</xmax>
+        <ymax>657532.8774217794</ymax>
+      </extent>
+      <id>england_boundary_4253c2fc</id>
+      <datasource>/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=england_boundary</datasource>
+      <layername>England Boundary</layername>
+      <srs>
+        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["OSGB36 / British National Grid",BASEGEOGCRS["OSGB36",DATUM["Ordnance Survey of Great Britain 1936",ELLIPSOID["Airy 1830",6377563.396,299.3249646,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4277]],CONVERSION["British National Grid",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",49,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-2,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996012717,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",400000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",-100000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["United Kingdom (UK)"],BBOX[49.75,-9.01,61.01,2.01]],ID["EPSG",27700]]</wkt>
+          <proj4>+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs</proj4>
+          <srsid>2429</srsid>
+          <srid>27700</srid>
+          <authid>EPSG:27700</authid>
+          <description>OSGB36 / British National Grid</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7001</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <provider encoding="UTF-8">ogr</provider>
+      <renderer-v2 type="singleSymbol" symbollevels="0" forceraster="0" enableorderby="0">
+        <symbols>
+        <symbol type="fill" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+          <layer class="SimpleFill" locked="0" enabled="1" pass="0">
+            <Option type="Map">
+              <Option type="QString" name="color" value="0,0,0,0"/>
+              <Option type="QString" name="outline_color" value="70,70,70,255"/>
+              <Option type="QString" name="outline_style" value="solid"/>
+              <Option type="QString" name="outline_width" value="0.4"/>
+              <Option type="QString" name="style" value="solid"/>
+            </Option>
+          </layer>
+        </symbol>
+        </symbols>
+      </renderer-v2>
+
+    </maplayer>
+    <maplayer type="vector" hasScaleBasedVisibilityFlag="0" geometry="Point">
+      <extent>
+        <xmin>82607.3653326967</xmin>
+        <ymin>5553.7617113465385</ymin>
+        <xmax>655526.292416711</xmax>
+        <ymax>657532.8774217794</ymax>
+      </extent>
+      <id>rewilding_projects_f0d134bf</id>
+      <datasource>/Users/laurencepengelly/rewilding-suitability/outputs/qgis/rewilding_network_validation.gpkg|layername=rewilding_projects</datasource>
+      <layername>Real Rewilding Network Sites</layername>
+      <srs>
+        <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["OSGB36 / British National Grid",BASEGEOGCRS["OSGB36",DATUM["Ordnance Survey of Great Britain 1936",ELLIPSOID["Airy 1830",6377563.396,299.3249646,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4277]],CONVERSION["British National Grid",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",49,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-2,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996012717,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",400000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",-100000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["United Kingdom (UK)"],BBOX[49.75,-9.01,61.01,2.01]],ID["EPSG",27700]]</wkt>
+          <proj4>+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs</proj4>
+          <srsid>2429</srsid>
+          <srid>27700</srid>
+          <authid>EPSG:27700</authid>
+          <description>OSGB36 / British National Grid</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7001</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <provider encoding="UTF-8">ogr</provider>
+      <renderer-v2 type="singleSymbol" symbollevels="0" forceraster="0" enableorderby="0">
+        <symbols>
+          <symbol type="marker" name="0" alpha="1" clip_to_extent="1" force_rhr="0">
+            <layer class="SimpleMarker" locked="0" enabled="1" pass="0">
+              <Option type="Map">
+                <Option type="QString" name="color" value="44,127,184,255"/>
+                <Option type="QString" name="outline_color" value="20,20,20,255"/>
+                <Option type="QString" name="outline_style" value="solid"/>
+                <Option type="QString" name="outline_width" value="0.3"/>
+                <Option type="QString" name="name" value="triangle"/>
+                <Option type="QString" name="size" value="5.5"/>
+                <Option type="QString" name="size_unit" value="MM"/>
+                <Option type="QString" name="horizontal_anchor_point" value="1"/>
+                <Option type="QString" name="vertical_anchor_point" value="1"/>
+              </Option>
+            </layer>
+          </symbol>
+        </symbols>
+      </renderer-v2>
+
+    </maplayer>
+  </projectlayers>
+  <mapcanvas name="theMapCanvas">
+    <extent>
+      <xmin>82607.3653326967</xmin>
+      <ymin>5553.7617113465385</ymin>
+      <xmax>655526.292416711</xmax>
+      <ymax>657532.8774217794</ymax>
+    </extent>
+    <rotation>0</rotation>
+    <destinationsrs>
+      <spatialrefsys nativeFormat="Wkt">
+          <wkt>PROJCRS["OSGB36 / British National Grid",BASEGEOGCRS["OSGB36",DATUM["Ordnance Survey of Great Britain 1936",ELLIPSOID["Airy 1830",6377563.396,299.3249646,LENGTHUNIT["metre",1]]],PRIMEM["Greenwich",0,ANGLEUNIT["degree",0.0174532925199433]],ID["EPSG",4277]],CONVERSION["British National Grid",METHOD["Transverse Mercator",ID["EPSG",9807]],PARAMETER["Latitude of natural origin",49,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",-2,ANGLEUNIT["degree",0.0174532925199433],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9996012717,SCALEUNIT["unity",1],ID["EPSG",8805]],PARAMETER["False easting",400000,LENGTHUNIT["metre",1],ID["EPSG",8806]],PARAMETER["False northing",-100000,LENGTHUNIT["metre",1],ID["EPSG",8807]]],CS[Cartesian,2],AXIS["(E)",east,ORDER[1],LENGTHUNIT["metre",1]],AXIS["(N)",north,ORDER[2],LENGTHUNIT["metre",1]],USAGE[SCOPE["Engineering survey, topographic mapping."],AREA["United Kingdom (UK)"],BBOX[49.75,-9.01,61.01,2.01]],ID["EPSG",27700]]</wkt>
+          <proj4>+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +units=m +no_defs</proj4>
+          <srsid>2429</srsid>
+          <srid>27700</srid>
+          <authid>EPSG:27700</authid>
+          <description>OSGB36 / British National Grid</description>
+          <projectionacronym>tmerc</projectionacronym>
+          <ellipsoidacronym>EPSG:7001</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+    </destinationsrs>
+  </mapcanvas>
+  <projectMetadata>
+    <title>Rewilding Opportunity vs Real Rewilding Network Sites</title>
+    <author>Laurence Pengelly</author>
+  </projectMetadata>
+</qgis>
