@@ -127,7 +127,14 @@ def test_add_bng_opportunity_score_reprojects_mismatched_crs(
         {"geometry": [Point(5, 5)]},
         crs=grid.crs,
     )
-    bng_sites_other_crs = bng_sites_native_crs.to_crs(4326)
+    # EPSG:4277 (OSGB36 geographic) shares the same datum as EPSG:27700
+    # (OSGB36 / British National Grid) — converting between them is a pure
+    # map projection, not a datum shift, so it needs no external grid data
+    # and is portable to sandboxes without full PROJ grid resources. Using
+    # EPSG:4326 (WGS84) here instead would require a real OSGB36<->WGS84
+    # datum transform, which depends on PROJ grid data that may not be
+    # available everywhere and can silently degrade to NaN/inf if missing.
+    bng_sites_other_crs = bng_sites_native_crs.to_crs(4277)
     assert bng_sites_other_crs.crs != grid.crs
 
     expected = add_bng_opportunity_score(grid, bng_sites_native_crs, tile_size_m=1_000)
@@ -136,12 +143,12 @@ def test_add_bng_opportunity_score_reprojects_mismatched_crs(
     expected_distances = expected.set_index("hex_id")["distance_to_bng_site_m"]
     actual_distances = actual.set_index("hex_id")["distance_to_bng_site_m"]
 
-    # A generous tolerance: the point round-trips through a WGS84<->OSGB36
-    # datum transform, which is not bit-exact. The regression this guards
-    # against is computing distance in degrees instead of metres, which
-    # would be off by many orders of magnitude more than this.
+    # This round-trip is a pure projection, not a datum shift, so it should
+    # be accurate to well under a metre; the regression this guards against
+    # (computing distance in degrees instead of metres) would be off by many
+    # orders of magnitude more than this.
     for hex_id in expected_distances.index:
-        assert actual_distances[hex_id] == pytest.approx(expected_distances[hex_id], abs=500.0)
+        assert actual_distances[hex_id] == pytest.approx(expected_distances[hex_id], abs=1.0)
 
 
 def test_add_rewilding_network_proximity_score_favors_hexes_near_real_projects(
