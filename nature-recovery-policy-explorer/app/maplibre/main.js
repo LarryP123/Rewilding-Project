@@ -34,6 +34,8 @@ const elements = {
   scenarioTitle: document.querySelector("#scenario-title"),
   stableToggle: document.querySelector("#stable-toggle"),
   contestedToggle: document.querySelector("#contested-toggle"),
+  bngToggle: document.querySelector("#bng-toggle"),
+  rnToggle: document.querySelector("#rn-toggle"),
   clearSelection: document.querySelector("#clear-selection"),
   copyView: document.querySelector("#copy-view"),
   openMethods: document.querySelector("#open-methods"),
@@ -438,6 +440,40 @@ function initMap() {
       filter: ["==", ["get", "hex_id"], ""],
     });
 
+    state.map.addSource("bng_sites", {
+      type: "geojson",
+      data: "../../data/publish/bng_sites.geojson",
+    });
+    state.map.addLayer({
+      id: "bng-points",
+      type: "circle",
+      source: "bng_sites",
+      paint: {
+        "circle-color": "#e15759",
+        "circle-radius": 3.5,
+        "circle-stroke-color": "#201211",
+        "circle-stroke-width": 0.8,
+        "circle-opacity": 0.92,
+      },
+    });
+
+    state.map.addSource("rewilding_network_sites", {
+      type: "geojson",
+      data: "../../data/publish/rewilding_network_sites.geojson",
+    });
+    state.map.addLayer({
+      id: "rn-points",
+      type: "circle",
+      source: "rewilding_network_sites",
+      paint: {
+        "circle-color": "#2c7fb8",
+        "circle-radius": 4,
+        "circle-stroke-color": "#0e1a20",
+        "circle-stroke-width": 0.8,
+        "circle-opacity": 0.92,
+      },
+    });
+
     state.map.fitBounds(ENGLAND_BOUNDS, { padding: 36, animate: false });
 
     updateMapStyle();
@@ -506,6 +542,22 @@ function bindToggles() {
   });
   elements.closeMethods.addEventListener("click", () => {
     elements.methodsModal.close();
+  });
+  elements.bngToggle.addEventListener("change", () => {
+    if (!state.map?.getLayer("bng-points")) return;
+    state.map.setLayoutProperty(
+      "bng-points",
+      "visibility",
+      elements.bngToggle.checked ? "visible" : "none",
+    );
+  });
+  elements.rnToggle.addEventListener("change", () => {
+    if (!state.map?.getLayer("rn-points")) return;
+    state.map.setLayoutProperty(
+      "rn-points",
+      "visibility",
+      elements.rnToggle.checked ? "visible" : "none",
+    );
   });
 }
 

@@ -374,6 +374,14 @@ h2 {
   background: #d3e7b8;
 }
 
+.dot-bng {
+  background: #e15759;
+}
+
+.dot-rn {
+  background: #2c7fb8;
+}
+
 .map-status {
   position: absolute;
   right: 18px;

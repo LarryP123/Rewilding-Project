@@ -106,6 +106,18 @@ def parse_args() -> argparse.Namespace:
         default=Path("data/raw/reference/ons_counties_unitary_2024.geojson"),
         help="Administrative geography used to attach place names for case-study use.",
     )
+    parser.add_argument(
+        "--bng-path",
+        type=Path,
+        default=Path("data/raw/reference/bng_gain_sites.geojson"),
+        help="Optional registered BNG gain site points, shown as a toggleable overlay if present.",
+    )
+    parser.add_argument(
+        "--rewilding-network-path",
+        type=Path,
+        default=Path("data/raw/reference/rewilding_network_projects.geojson"),
+        help="Optional Rewilding Network project points, shown as a toggleable overlay if present.",
+    )
     return parser.parse_args()
 
 
@@ -195,6 +207,35 @@ def label_markup(
         markup.append(
             f"""
             <text class="{css_class}" x="{x}" y="{y}" text-anchor="middle">{html.escape(str(getattr(row, label_column)))}</text>
+            """
+        )
+    return markup
+
+
+def point_marker_markup(
+    gdf: gpd.GeoDataFrame,
+    project: callable,
+    *,
+    radius: float,
+    css_class: str,
+    title_column: str | None = None,
+) -> list[str]:
+    """Render point geometries as small SVG circles, e.g. for a real-world reference layer."""
+
+    markup: list[str] = []
+    for row in gdf.itertuples():
+        geometry = row.geometry
+        if geometry is None or geometry.is_empty:
+            continue
+        x, y = project(geometry.x, geometry.y)
+        title_markup = (
+            f"<title>{html.escape(str(getattr(row, title_column)))}</title>"
+            if title_column is not None
+            else ""
+        )
+        markup.append(
+            f"""
+            <circle class="{css_class}" cx="{x}" cy="{y}" r="{radius}">{title_markup}</circle>
             """
         )
     return markup
@@ -316,6 +357,8 @@ def build_html(
     county_markup: list[str],
     context_outline_markup: list[str],
     context_label_markup: list[str],
+    bng_markup: list[str],
+    rewilding_network_markup: list[str],
     features: list[dict],
     width: int,
     height: int,
@@ -883,6 +926,58 @@ def build_html(
       letter-spacing: 0.02em;
       font-size: 11px;
     }}
+    .layer-toggle {{
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      padding: 9px 12px;
+      cursor: pointer;
+      color: var(--ink);
+      box-shadow: 0 10px 24px rgba(8, 12, 10, 0.2);
+      font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.02em;
+      font-size: 11px;
+    }}
+    .layer-toggle input {{ margin: 0; }}
+    .overlay-layer.hidden {{ display: none; }}
+    .bng-marker {{
+      fill: #e15759;
+      stroke: #201211;
+      stroke-width: 0.8;
+      vector-effect: non-scaling-stroke;
+      opacity: 0.92;
+    }}
+    .rn-marker {{
+      fill: #2c7fb8;
+      stroke: #0e1a20;
+      stroke-width: 0.8;
+      vector-effect: non-scaling-stroke;
+      opacity: 0.92;
+    }}
+    .map-legend {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }}
+    .legend-item {{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }}
+    .legend-swatch {{
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }}
+    .legend-swatch-bng {{ background: #e15759; }}
+    .legend-swatch-rn {{ background: #2c7fb8; }}
     svg {{
       width: 100%;
       height: auto;
@@ -1346,6 +1441,8 @@ def build_html(
           <button type="button" id="zoom-out">Zoom Out</button>
           <button type="button" id="zoom-selected">Zoom To Selected</button>
           <button type="button" id="reset-view">Reset</button>
+          <label class="layer-toggle"><input type="checkbox" id="toggle-bng-layer" checked>BNG sites</label>
+          <label class="layer-toggle"><input type="checkbox" id="toggle-rn-layer" checked>Rewilding Network</label>
         </div>
         <div class="map-tooltip" id="map-tooltip" aria-hidden="true"></div>
         <svg id="inspection-map" viewBox="0 0 {width} {height}" role="img" aria-label="Shortlisted rewilding opportunity cells in England">
@@ -1354,10 +1451,16 @@ def build_html(
           {"".join(boundary_markup)}
           {"".join(county_markup)}
           <g id="cell-layer"></g>
+          <g id="bng-layer" class="overlay-layer">{"".join(bng_markup)}</g>
+          <g id="rn-layer" class="overlay-layer">{"".join(rewilding_network_markup)}</g>
         </svg>
         <div class="map-note">
           <span id="map-status">Showing the packaged shortlist.</span>
           <span>Mouse wheel zooms, drag pans, click a cell for the explanation panel.</span>
+        </div>
+        <div class="map-legend">
+          <span class="legend-item"><span class="legend-swatch legend-swatch-bng"></span>Registered BNG site</span>
+          <span class="legend-item"><span class="legend-swatch legend-swatch-rn"></span>Real Rewilding Network site</span>
         </div>
       </div>
 
@@ -2045,6 +2148,12 @@ def build_html(
       view = {{ ...fullView }};
       renderViewBox();
     }});
+    document.getElementById('toggle-bng-layer').addEventListener('change', (event) => {{
+      document.getElementById('bng-layer').classList.toggle('hidden', !event.target.checked);
+    }});
+    document.getElementById('toggle-rn-layer').addEventListener('change', (event) => {{
+      document.getElementById('rn-layer').classList.toggle('hidden', !event.target.checked);
+    }});
   </script>
 </body>
 </html>
@@ -2077,6 +2186,28 @@ def main() -> None:
     width = 1280
     project, height = make_projector(tuple(boundary.total_bounds), width=width)
     features = build_feature_payload(shortlist, project, component_columns)
+
+    bng_markup: list[str] = []
+    if args.bng_path.exists():
+        bng_sites = gpd.read_file(args.bng_path)
+        if bng_sites.crs is not None and bng_sites.crs != boundary.crs:
+            bng_sites = bng_sites.to_crs(boundary.crs)
+        bng_markup = point_marker_markup(bng_sites, project, radius=2.6, css_class="bng-marker", title_column="Reference")
+
+    rewilding_network_markup: list[str] = []
+    if args.rewilding_network_path.exists():
+        rn_sites = gpd.read_file(args.rewilding_network_path)
+        if rn_sites.crs is None:
+            rn_sites = rn_sites.set_crs("EPSG:4326")
+        if "hideExactLocation" in rn_sites.columns:
+            rn_sites = rn_sites[~rn_sites["hideExactLocation"].fillna(False)].copy()
+        boundary_wgs84 = boundary.to_crs(rn_sites.crs) if boundary.crs != rn_sites.crs else boundary
+        rn_sites = gpd.sjoin(rn_sites, boundary_wgs84[["geometry"]], how="inner", predicate="within").drop(
+            columns=["index_right"]
+        )
+        if rn_sites.crs != boundary.crs:
+            rn_sites = rn_sites.to_crs(boundary.crs)
+        rewilding_network_markup = point_marker_markup(rn_sites, project, radius=3.0, css_class="rn-marker", title_column="id")
     boundary_markup = geometry_markup(
         boundary,
         project,
@@ -2134,6 +2265,8 @@ def main() -> None:
         county_markup=county_markup,
         context_outline_markup=context_outline_markup,
         context_label_markup=context_label_markup,
+        bng_markup=bng_markup,
+        rewilding_network_markup=rewilding_network_markup,
         features=features,
         width=width,
         height=height,
