@@ -411,6 +411,32 @@ Note the `TILE_SIZE` must exceed the extent's pixel dimensions at the chosen
 resolution (here `~2865x3260` at `200` m/pixel) or `native:rasterize` pads
 the canvas to a second tile and doubles the output size unnecessarily.
 
+### Building a native QGIS Print Layout
+
+The map above is composited with matplotlib, not QGIS's own Layout Composer.
+`scripts/build_bng_print_layout.py` builds the same map (title, legend, scale
+bar, north arrow, finding callout) as an actual `QgsPrintLayout` — map item,
+legend item, scale bar item, picture item, label items — using PyQGIS, and
+saves it into `outputs/qgis/bng_alignment.qgs` so it's on the Layouts menu
+when opened in the QGIS GUI, not just a static export.
+
+It's written as a QGIS Processing script algorithm and run through
+`qgis_process` rather than the full QGIS.app GUI binary: launching the GUI
+app to run a `--code` script (even offscreen) hangs indefinitely on
+`QgsProject.read()` in a sandboxed/no-network environment — some GUI-only
+startup hook blocks waiting on a dialog or network call that never resolves.
+`qgis_process` skips that machinery and loads the same project fine:
+
+```bash
+PROJ_DATA=/Applications/QGIS.app/Contents/Resources/qgis/proj \
+GDAL_DATA=/Applications/QGIS.app/Contents/Resources/gdal \
+/Applications/QGIS.app/Contents/MacOS/qgis_process run scripts/build_bng_print_layout.py \
+  --PROJECT_PATH="$(pwd)/outputs/qgis/bng_alignment.qgs"
+```
+
+This writes `outputs/qgis/bng_alignment_print_layout.pdf` and `.png`, and
+updates the `.qgs` in place with the saved layout.
+
 Right now the local-development workflow can use:
 
 - the local `data/interim/corine_subset.parquet` layer for habitat-context features,
