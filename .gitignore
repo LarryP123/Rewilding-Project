@@ -14,3 +14,7 @@ data/interim/
 outouts/top_candidates/*.geojson
 
 outputs/qgis/*.gpkg
+outputs/bng_habitat_bank_value/*.parquet
+
+tmp/
+output/

@@ -68,6 +68,35 @@ def attach_geography_name(
     )
 
 
+def find_neighbouring_polygons(
+    polygons: gpd.GeoDataFrame,
+    name_column: str,
+    buffer_m: float = 50.0,
+) -> dict[str, set[str]]:
+    """Map each named polygon to the set of other named polygons that touch it.
+
+    Requires a projected (metres) CRS. A small buffer absorbs tiny gaps or
+    slivers between adjacent boundaries (e.g. from coastline generalisation)
+    that would otherwise cause a strict `touches` predicate to miss real
+    neighbours.
+    """
+
+    left = polygons[[name_column, "geometry"]].copy()
+    left["geometry"] = left.geometry.buffer(buffer_m)
+    left = left.rename(columns={name_column: "_left_name"})
+    right = polygons[[name_column, "geometry"]].rename(columns={name_column: "_right_name"})
+
+    joined = gpd.sjoin(left, right, how="left", predicate="intersects").drop(columns=["index_right"])
+    joined = joined[joined["_left_name"] != joined["_right_name"]]
+
+    neighbours: dict[str, set[str]] = {name: set() for name in polygons[name_column]}
+    for left_name, right_name in zip(joined["_left_name"], joined["_right_name"]):
+        if pd.isna(right_name):
+            continue
+        neighbours[left_name].add(right_name)
+    return neighbours
+
+
 def summarize_named_geography(
     frame: pd.DataFrame,
     *,

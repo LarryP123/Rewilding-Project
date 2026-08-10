@@ -6,7 +6,12 @@ import geopandas as gpd
 import pandas as pd
 from shapely.geometry import Polygon
 
-from src.geography import attach_geography_name, dominant_name_by_group, infer_name_column
+from src.geography import (
+    attach_geography_name,
+    dominant_name_by_group,
+    find_neighbouring_polygons,
+    infer_name_column,
+)
 
 
 def _square(min_x: float, min_y: float, max_x: float, max_y: float) -> Polygon:
@@ -47,6 +52,28 @@ def test_attach_geography_name_joins_representative_points(tmp_path: Path) -> No
 
     actual = enriched.set_index("hex_id")["lnrs_name"].to_dict()
     assert actual == {"hex_a": "North Strategy", "hex_b": "South Strategy"}
+
+
+def test_find_neighbouring_polygons_detects_touching_but_not_distant_polygons() -> None:
+    # A and B share an edge at x=10 (touching). C sits 10 units away from B,
+    # well beyond the 1-unit buffer used here, so it should not be a neighbour.
+    polygons = gpd.GeoDataFrame(
+        {
+            "name": ["A", "B", "C"],
+            "geometry": [
+                _square(0, 0, 10, 10),
+                _square(10, 0, 20, 10),
+                _square(30, 0, 40, 10),
+            ],
+        },
+        crs="EPSG:27700",
+    )
+
+    neighbours = find_neighbouring_polygons(polygons, "name", buffer_m=1.0)
+
+    assert neighbours["A"] == {"B"}
+    assert neighbours["B"] == {"A"}
+    assert neighbours["C"] == set()
 
 
 def test_dominant_name_by_group_prefers_most_common_then_strongest_score() -> None:
